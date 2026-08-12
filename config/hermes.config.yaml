@@ -21,11 +21,16 @@ mcp_servers:
         - get_fundamentals
         - get_financials              # alias
         - get_financial_statements
+        - get_dividends
+        - get_corporate_actions
+        - get_sector_info
+        - get_macro
         - get_technical
         - get_market_overview
         - get_market_movers
         - search_news
         - cache_stats
+        - resolve_symbol_tool
         - portfolio_add_transaction
         - portfolio_holdings
         - portfolio_summary
