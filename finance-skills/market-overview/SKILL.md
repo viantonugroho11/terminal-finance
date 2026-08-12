@@ -11,6 +11,7 @@ metadata:
     related_skills: [stock-analysis, crypto-analysis]
     requires_tools:
       - finance.get_market_overview
+      - finance.get_market_movers
       - finance.search_news
     blueprint:
       schedule: "0 8 * * 1-5"
@@ -27,8 +28,12 @@ metadata:
 
 ## Procedure
 
-1. `finance.get_market_overview()` — one call, returns S&P/NASDAQ/DOW/BTC/ETH/GOLD/OIL/DXY
-2. `finance.search_news("stock market", limit=5)` — top headlines
+1. `finance.get_market_overview()` — one call, returns S&P/NASDAQ/DOW/Russell/VIX/BTC/ETH/GOLD/OIL/DXY
+2. `finance.get_market_movers()` — top gainers / losers / most active
+3. `finance.search_news("stock market", limit=5)` — top headlines
+
+Every reply carries `{data, provenance}`. If a bucket is empty or a tool
+returns `{error: {...}}`, print "n/a" for that section — do not fabricate.
 
 ## Output Format
 
@@ -48,6 +53,11 @@ Commodities / FX
   GOLD        $X,XXX  +X.XX%
   OIL         $XX.XX  +X.XX%
   DXY         XXX.XX  +X.XX%
+
+MOVERS  [FACT]
+  Top Gainers   SYM +XX.X%
+  Top Losers    SYM -XX.X%
+  Most Active   SYM  X.X%  (vol)
 
 TOP NEWS  [FACT]
   · headline — publisher

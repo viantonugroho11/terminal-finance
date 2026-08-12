@@ -11,8 +11,10 @@ metadata:
     related_skills: [crypto-analysis, market-overview, fundamental-analysis, technical-analysis]
     requires_tools:
       - finance.get_quote
-      - finance.get_company
-      - finance.get_financials
+      - finance.get_company_profile
+      - finance.get_fundamentals
+      - finance.get_financial_statements
+      - finance.get_historical_prices
       - finance.get_technical
       - finance.search_news
 ---
@@ -31,12 +33,22 @@ Structured equity analysis grounded ONLY in tool output. Never fabricate numbers
 For symbol `<SYM>`, call finance MCP tools **in parallel**:
 
 1. `finance.get_quote(<SYM>)` — current price + change
-2. `finance.get_company(<SYM>)` — business overview
-3. `finance.get_financials(<SYM>)` — valuation + margins + growth
-4. `finance.get_technical(<SYM>, period="1y")` — SMA/EMA/RSI/MACD/volatility/drawdown
-5. `finance.search_news(<SYM>, limit=8)` — recent headlines
+2. `finance.get_company_profile(<SYM>)` — business overview
+3. `finance.get_fundamentals(<SYM>)` — valuation ratios + margins + growth
+4. `finance.get_financial_statements(<SYM>)` — 3y income / balance / cashflow
+5. `finance.get_technical(<SYM>, period="1y")` — SMA/EMA/RSI/MACD/volatility/drawdown
+6. `finance.search_news(<SYM>, limit=8)` — recent headlines
 
-Then synthesize the output below. Every numeric claim must trace to a tool result. If a field is null, say "not available" — do not guess.
+Every tool reply has shape `{data: ..., provenance: {source, retrieved_at, cache_hit}}`.
+Use `data` for numbers; cite `provenance.source` at the end of your response.
+
+If a reply has an `error` key instead of `data`:
+- `SYMBOL_NOT_FOUND` / `INVALID_SYMBOL` → tell user the symbol is not recognized; do not fabricate.
+- `RATE_LIMITED` / `PROVIDER_UNAVAILABLE` / `TIMEOUT` → apologize, suggest retry, name the code.
+- `DATA_UNAVAILABLE` → say the specific field is unavailable and continue with what you have.
+Never substitute training-data knowledge for a missing tool result.
+
+Every numeric claim must trace to a tool result. If a field is null, say "not available" — do not guess.
 
 ## Output Format
 
@@ -96,6 +108,10 @@ RISKS  [RISK]
 
 CONFIDENCE: <Low | Moderate | High>
   <one line: what would raise/lower it>
+
+SOURCES
+  Quote / Fundamentals / Statements / Technicals: <provenance.source>
+  News: <publisher list from search_news>
 ```
 
 ## Safety Rules

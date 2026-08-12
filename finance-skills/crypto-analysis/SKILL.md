@@ -11,6 +11,7 @@ metadata:
     related_skills: [stock-analysis, market-overview]
     requires_tools:
       - finance.get_quote
+      - finance.get_historical_prices
       - finance.get_technical
       - finance.search_news
 ---
