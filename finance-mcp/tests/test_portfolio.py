@@ -3,7 +3,8 @@ import os
 import tempfile
 import pytest
 
-os.environ["FINANCE_DB"] = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
+os.environ.setdefault("FINANCE_DB",
+                      tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
 
 from finance_mcp.portfolio import db, service, watchlist  # noqa: E402
 db.init()

@@ -5,7 +5,8 @@ import tempfile
 import pytest
 
 os.environ["FINANCE_PROVIDER"] = "mock"
-os.environ["FINANCE_DB"] = tempfile.NamedTemporaryFile(suffix=".db", delete=False).name
+os.environ.setdefault("FINANCE_DB",
+                      tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
 
 from finance_mcp import server  # noqa: E402
 
