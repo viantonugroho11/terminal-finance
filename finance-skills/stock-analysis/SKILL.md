@@ -17,6 +17,10 @@ metadata:
       - finance.get_historical_prices
       - finance.get_technical
       - finance.search_news
+      - finance.get_dividends
+      - finance.get_corporate_actions
+      - finance.get_sector_info
+      - finance.resolve_symbol_tool
 ---
 
 # Stock Analysis
@@ -26,7 +30,23 @@ Structured equity analysis grounded ONLY in tool output. Never fabricate numbers
 ## When to Use
 
 - User says: "analyze NVDA", "what do you think about AAPL", "research TSLA", "should I look at MSFT"
+- Indonesian equities: "analisis BBCA", "bagaimana TLKM", "bandingkan BBCA dan BBRI" — no `.JK` suffix needed for tickers on the IDX allowlist; user may still use `BBCA.JK` explicitly.
 - Any question requiring current stock fundamentals, valuation, technicals, or news
+
+## Market Detection
+
+The MCP resolver auto-classifies each symbol. Every tool reply's `provenance.resolver` says which market was picked (`US`, `IDX`, `GLOBAL`, `CRYPTO`) and the canonical symbol used. If the market looks wrong, call `finance.resolve_symbol_tool(<SYM>)` to inspect, and ask the user for a suffix (e.g. `BBCA.JK`).
+
+## Indonesian equities — extras
+
+For IDX symbols (resolver.market == "IDX"), also call in parallel:
+- `finance.get_dividends(<SYM>)` — dividend history from IDX.
+- `finance.get_corporate_actions(<SYM>)` — splits, rights issues, bonus shares.
+- `finance.get_sector_info(<SYM>)` — IDX-IC sector taxonomy.
+
+For **Indonesian banks** (BBCA, BBRI, BMRI, BBNI, BRIS, BJBR, BTPS, BNGA, NISP, PNBN, MEGA, …) the `get_fundamentals` reply includes bank-specific ratios when the provider supplies them: `net_interest_margin` (NIM), `non_performing_loan_ratio` (NPL), `capital_adequacy_ratio` (CAR), `loan_to_deposit_ratio` (LDR), `casa_ratio`, `cost_of_credit`, `loan_growth`, `deposit_growth`. Surface these in a `BANKING METRICS` block instead of the generic FUNDAMENTALS block; report only the ones the tool returned (never fabricate).
+
+Currency for IDX symbols is IDR. Display prices as `Rp X,XXX` and market cap as `Rp X,XXX T` (triliun) or `Rp X,XXX M` (miliar) rather than `$`.
 
 ## Procedure
 

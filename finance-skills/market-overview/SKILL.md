@@ -12,6 +12,8 @@ metadata:
     requires_tools:
       - finance.get_market_overview
       - finance.get_market_movers
+      - finance.get_quote
+      - finance.get_macro
       - finance.search_news
     blueprint:
       schedule: "0 8 * * 1-5"
@@ -25,12 +27,21 @@ metadata:
 ## When to Use
 
 - "market", "how are markets today", "morning briefing", "market snapshot"
+- Indonesian variants: "pasar", "IHSG hari ini", "kondisi pasar", "briefing pagi"
 
 ## Procedure
 
-1. `finance.get_market_overview()` — one call, returns S&P/NASDAQ/DOW/Russell/VIX/BTC/ETH/GOLD/OIL/DXY
+Call in parallel:
+
+1. `finance.get_market_overview()` — S&P/NASDAQ/DOW/Russell/VIX/BTC/ETH/GOLD/OIL/DXY
 2. `finance.get_market_movers()` — top gainers / losers / most active
-3. `finance.search_news("stock market", limit=5)` — top headlines
+3. **Indonesian block** (always include when producing an ID-oriented briefing, or when the user asks in Indonesian):
+   - `finance.get_quote("^JKSE")` — IHSG (Jakarta Composite)
+   - `finance.get_quote("^JKLQ45")` — LQ45 (optional)
+   - `finance.get_macro("bi_rate")` — latest BI-Rate observation
+   - `finance.get_macro("jisdor")` — latest USD/IDR reference rate
+   - `finance.get_macro("inflation")` — latest headline inflation
+4. `finance.search_news("stock market", limit=5)` — top headlines
 
 Every reply carries `{data, provenance}`. If a bucket is empty or a tool
 returns `{error: {...}}`, print "n/a" for that section — do not fabricate.
@@ -54,6 +65,13 @@ Commodities / FX
   OIL         $XX.XX  +X.XX%
   DXY         XXX.XX  +X.XX%
 
+Indonesia  [FACT — omit block if all sub-calls errored]
+  IHSG        X,XXX  +X.XX%
+  LQ45        X,XXX  +X.XX%
+  BI-Rate     X.XX%  (as of YYYY-MM)
+  USD/IDR     XX,XXX (JISDOR, YYYY-MM-DD)
+  Inflation   X.XX%  YoY (YYYY-MM)
+
 MOVERS  [FACT]
   Top Gainers   SYM +XX.X%
   Top Losers    SYM -XX.X%
@@ -69,3 +87,4 @@ READ  [ANALYSIS]
 ## Safety
 
 Never state a level or % not returned by the tool. If a symbol errored, print "n/a" for it.
+Every macro figure must cite `provenance.attribution` (Bank Indonesia / BPS / OJK). If `get_macro` returns `DATA_UNAVAILABLE`, print "n/a — source unavailable this run" and continue with the equities block.
