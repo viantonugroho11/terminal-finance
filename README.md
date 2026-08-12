@@ -124,6 +124,17 @@ Environment overrides — all optional, all safe defaults:
 
 No secrets are committed. API keys (when a provider needs them) must come from env vars only.
 
+## Architecture decisions
+
+Recorded in [`docs/adr/`](docs/adr/README.md). Index:
+
+- ADR-0001 — HTTP MCP transport over stdio
+- ADR-0002 — Provider Protocol abstraction
+- ADR-0003 — In-process TTL cache with single-flight
+- ADR-0004 — Provenance wrapper on every tool reply
+- ADR-0005 — Structured FinanceError with stable codes
+- ADR-0006 — FastMCP shim for offline / Python 3.9 tests
+
 ## Error codes
 
 Every failure returns `{error: {code, message, provider, symbol, retry_after_seconds?}}`. Codes: `SYMBOL_NOT_FOUND`, `INVALID_SYMBOL`, `PROVIDER_UNAVAILABLE`, `RATE_LIMITED`, `AUTHENTICATION_FAILED`, `DATA_UNAVAILABLE`, `TIMEOUT`, `INTERNAL`. Skills react per-code (retry, apologize, degrade); they never invent fake values on error.
