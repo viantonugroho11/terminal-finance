@@ -65,6 +65,73 @@ class Financials:
     free_cashflow: float | None
     dividend_yield: float | None
     beta: float | None
+    # Banking-specific (nullable — populated only for banks by providers
+    # that supply them, e.g. OJK aggregates or bank annual reports).
+    # See ADR-0020.
+    net_interest_margin: float | None = None
+    non_performing_loan_ratio: float | None = None
+    capital_adequacy_ratio: float | None = None
+    loan_to_deposit_ratio: float | None = None
+    casa_ratio: float | None = None
+    cost_of_credit: float | None = None
+    loan_growth: float | None = None
+    deposit_growth: float | None = None
+
+
+@dataclass
+class DividendEvent:
+    ex_date: str
+    payment_date: str | None
+    amount_per_share: float
+    currency: str
+
+
+@dataclass
+class DividendHistory:
+    symbol: str
+    events: list[DividendEvent] = field(default_factory=list)
+
+
+@dataclass
+class CorporateAction:
+    date: str
+    kind: str        # "split" | "reverse_split" | "rights_issue" | "bonus" | "dividend" | "other"
+    ratio: str | None
+    description: str | None
+
+
+@dataclass
+class CorporateActionHistory:
+    symbol: str
+    events: list[CorporateAction] = field(default_factory=list)
+
+
+@dataclass
+class MacroObservation:
+    period: str          # ISO date or period label (e.g. "2025-Q2", "2025-07")
+    value: float
+    unit: str | None = None
+
+
+@dataclass
+class MacroSeries:
+    indicator: str       # canonical name (e.g. "bi_rate", "cpi_yoy")
+    source: str          # "bi" | "bps" | "ojk"
+    unit: str | None     # "%", "IDR", "index", etc.
+    observations: list[MacroObservation] = field(default_factory=list)
+    frequency: str | None = None      # "daily" | "monthly" | "quarterly" | "annual"
+    description: str | None = None
+    attribution: str | None = None    # e.g. "Bank Indonesia", "BPS", "OJK SPI"
+
+
+@dataclass
+class SectorInfo:
+    symbol: str
+    sector_code: str | None      # IDX-IC code when known
+    sector_name: str | None
+    subsector: str | None
+    industry: str | None
+    sub_industry: str | None
 
 
 @dataclass
@@ -149,20 +216,25 @@ class Provenance:
     retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     cache_hit: bool = False
     symbol: str | None = None
+    resolver: dict[str, Any] | None = None                     # MarketContext.to_dict()
+    attribution: str | None = None                             # e.g. "Data © IDX" for scraped sources
 
     def to_dict(self) -> dict[str, Any]:
         # Always deep-convert: handles dataclasses, nested dataclasses inside
         # lists/dicts, and passes primitives through unchanged.
         payload = _deep_asdict(self.data)
-        return {
-            "data": payload,
-            "provenance": {
-                "source": self.source,
-                "retrieved_at": self.retrieved_at,
-                "cache_hit": self.cache_hit,
-                **({"symbol": self.symbol} if self.symbol else {}),
-            },
+        prov: dict[str, Any] = {
+            "source": self.source,
+            "retrieved_at": self.retrieved_at,
+            "cache_hit": self.cache_hit,
         }
+        if self.symbol:
+            prov["symbol"] = self.symbol
+        if self.resolver:
+            prov["resolver"] = self.resolver
+        if self.attribution:
+            prov["attribution"] = self.attribution
+        return {"data": payload, "provenance": prov}
 
 
 def _deep_asdict(obj: Any) -> Any:
