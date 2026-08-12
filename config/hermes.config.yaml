@@ -1,0 +1,41 @@
+# Hermes config for Finance Terminal.
+# Copy to ~/.hermes/config.yaml (or mount as /opt/data/config.yaml in the hermes container).
+# Full reference: https://hermes-agent.nousresearch.com/docs/reference/mcp-config-reference
+
+mcp_servers:
+  finance:
+    # Streamable-HTTP MCP transport. In compose, hermes reaches finance-mcp
+    # by service name on the shared bridge network.
+    url: "http://finance-mcp:7800/mcp"
+    enabled: true
+    timeout: 60
+    connect_timeout: 15
+    # Whitelist — keep the tool surface tight so Hermes picks them reliably.
+    tools:
+      include:
+        - get_quote
+        - get_history
+        - get_company
+        - get_financials
+        - get_technical
+        - search_news
+        - get_market_overview
+        - portfolio_add_transaction
+        - portfolio_holdings
+        - portfolio_summary
+        - portfolio_allocation
+        - portfolio_risk
+        - watchlist_create
+        - watchlist_add
+        - watchlist_remove
+        - watchlist_list
+        - watchlist_quotes
+      resources: false
+
+# Skills live at /opt/data/skills — mounted from ../finance-skills in compose.
+# Hermes auto-discovers per its Skills System.
+
+# Providers/models: configure via `hermes setup` or add here per docs.
+# providers:
+#   openrouter:
+#     api_key: "${env:OPENROUTER_API_KEY}"
