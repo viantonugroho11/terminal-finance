@@ -126,7 +126,9 @@ No secrets are committed. API keys (when a provider needs them) must come from e
 
 ## Architecture decisions
 
-Recorded in [`docs/adr/`](docs/adr/README.md). Index:
+Recorded in [`docs/adr/`](docs/adr/README.md).
+
+**Phase 1–2 (Accepted, in production):**
 
 - ADR-0001 — HTTP MCP transport over stdio
 - ADR-0002 — Provider Protocol abstraction
@@ -134,6 +136,24 @@ Recorded in [`docs/adr/`](docs/adr/README.md). Index:
 - ADR-0004 — Provenance wrapper on every tool reply
 - ADR-0005 — Structured FinanceError with stable codes
 - ADR-0006 — FastMCP shim for offline / Python 3.9 tests
+
+**Phase 3 (Proposed — architectural gate before implementation):**
+
+- ADR-0007 — Finance Hermes overall architecture (target stack)
+- ADR-0008 — Multi-provider financial data with capability tags
+- ADR-0009 — Finance MCP shape — gateway + specialized backends
+- ADR-0010 — Canonical financial data models + schema versioning
+- ADR-0011 — Data provenance, source hierarchy, conflict resolution
+- ADR-0012 — Capability-based provider router
+- ADR-0013 — Quantitative analysis engine (deterministic math)
+- ADR-0014 — Advanced financial analyst skill decomposition
+- ADR-0015 — Multi-agent financial research via Hermes subagents
+- ADR-0016 — Research evaluator loop with bounded iterations
+- ADR-0017 — DCF and valuation engine (deterministic)
+- ADR-0018 — SEC EDGAR and primary-source integration
+- ADR-0019 — Deep-research report format and rendering
+
+Supporting: [decision matrix](docs/adr/phase-3-decision-matrix.md) · [reference analysis](docs/adr/phase-3-reference-analysis.md) · [implementation sequence](docs/adr/phase-3-implementation-sequence.md).
 
 ## Error codes
 
