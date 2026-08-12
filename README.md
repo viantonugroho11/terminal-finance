@@ -47,15 +47,20 @@ Bootstrap:
 
 ## Tools exposed by finance-mcp
 
+Market / research (every reply is `{data, provenance: {source, retrieved_at, cache_hit}}` on success or `{error: {code, message, ...}}` on failure):
+
 | tool | purpose |
 |---|---|
 | `get_quote(symbol)` | live price, change, volume |
-| `get_history(symbol, period, interval)` | OHLCV candles |
-| `get_company(symbol)` | sector, industry, summary, market cap |
-| `get_financials(symbol)` | P/E, ROE, margins, growth, D/E, FCF, beta |
+| `get_historical_prices(symbol, period, interval)` | OHLCV candles (alias: `get_history`) |
+| `get_company_profile(symbol)` | sector, industry, summary, market cap (alias: `get_company`) |
+| `get_fundamentals(symbol)` | P/E, ROE, margins, growth, D/E, FCF, beta (alias: `get_financials`) |
+| `get_financial_statements(symbol)` | 3y annual income / balance / cashflow |
 | `get_technical(symbol, period)` | SMA(20/50/200), EMA20, RSI14, MACD, vol, drawdown — **deterministic** |
+| `get_market_overview()` | S&P/NASDAQ/DOW/Russell/VIX + BTC/ETH + GOLD/OIL + DXY |
+| `get_market_movers()` | top gainers / losers / most active |
 | `search_news(query, limit)` | recent news items |
-| `get_market_overview()` | indices + crypto + commodities + DXY snapshot |
+| `cache_stats()` | diagnostics: hits / misses / size |
 | `portfolio_add_transaction(...)` | record BUY/SELL/DIV/FEE |
 | `portfolio_holdings(account?)` | positions with live prices, P&L, weights |
 | `portfolio_summary(account?)` | totals: MV, cost, unrealized P&L, realized income |
@@ -63,15 +68,69 @@ Bootstrap:
 | `portfolio_risk(account?)` | HHI concentration, per-position vol + drawdown |
 | `watchlist_{create,add,remove,list,quotes}` | watchlist CRUD + live quotes |
 
-Technical indicators are computed in `finance_mcp/technical.py` — never asked of the LLM.
+Every market/research tool goes through: **cache → retry → provider → normalize → provenance**. Deterministic math (`finance_mcp/calc.py`, `finance_mcp/technical.py`) is never asked of the LLM.
+
+## Data pipeline
+
+```
+Hermes tool call
+      ↓
+_do(tool, key, ttl, fetch)
+      ↓
+TTLCache.get_or_fetch  ── hit ─────────┐
+      ↓ miss                            │
+with_retry(fetch)                       │
+  - retries TIMEOUT / RATE_LIMITED /    │
+    PROVIDER_UNAVAILABLE                │
+  - honors retry_after_seconds          │
+  - exponential backoff + jitter        │
+      ↓                                 │
+Provider (yahoo | mock)                 │
+  - raises FinanceError with code       │
+      ↓                                 │
+Normalized dataclass                    │
+      ↓                                 │
+Provenance{source, retrieved_at,        │
+  cache_hit, symbol}.to_dict()  ←───────┘
+      ↓
+tool_call() logs tool + symbol + provider
+      + latency_ms + cache + error
+      ↓
+{data, provenance}   or   {error: {...}}
+```
 
 ## Provider swap
 
-`finance_mcp/providers/__init__.py` defines Protocols. Add `providers/polygon.py`, wire it in `server.py`. No changes to tools, skills, or Hermes config.
+`finance_mcp/providers/__init__.py` defines Protocols. Add `providers/polygon.py`, register in `_pick_provider()` in `server.py`. No changes to tools, skills, or Hermes config. Set `FINANCE_PROVIDER=mock` to run the entire MCP against `MockProvider` (deterministic seeded data, no network).
+
+## Configuration
+
+Environment overrides — all optional, all safe defaults:
+
+| var | default | purpose |
+|---|---|---|
+| `FINANCE_PROVIDER` | `yahoo` | `yahoo` or `mock` |
+| `FINANCE_MCP_HOST` / `_PORT` | `0.0.0.0` / `7800` | streamable-HTTP bind |
+| `FINANCE_LOG_LEVEL` | `INFO` | logger level |
+| `FINANCE_DB` | `/opt/data/finance/finance.db` | portfolio SQLite path |
+| `FINANCE_CACHE_TTL_QUOTE` | `15` | quote TTL (seconds) |
+| `FINANCE_CACHE_TTL_HISTORY` | `300` | history TTL |
+| `FINANCE_CACHE_TTL_FUNDAMENTALS` | `21600` | fundamentals TTL |
+| `FINANCE_CACHE_TTL_STATEMENTS` | `21600` | financial statements TTL |
+| `FINANCE_CACHE_TTL_COMPANY` | `21600` | company profile TTL |
+| `FINANCE_CACHE_TTL_MARKET` | `60` | market overview TTL |
+| `FINANCE_CACHE_TTL_MOVERS` | `120` | movers TTL |
+| `FINANCE_CACHE_TTL_NEWS` | `300` | news TTL |
+
+No secrets are committed. API keys (when a provider needs them) must come from env vars only.
+
+## Error codes
+
+Every failure returns `{error: {code, message, provider, symbol, retry_after_seconds?}}`. Codes: `SYMBOL_NOT_FOUND`, `INVALID_SYMBOL`, `PROVIDER_UNAVAILABLE`, `RATE_LIMITED`, `AUTHENTICATION_FAILED`, `DATA_UNAVAILABLE`, `TIMEOUT`, `INTERNAL`. Skills react per-code (retry, apologize, degrade); they never invent fake values on error.
 
 ## Roadmap (spec Phases 5–10)
 
-Deep research subagent · Alerts via Hermes cron · Morning briefing polish · Dedicated TUI. Current slice covers **Phases 1–4** (Phase 4 = portfolio + risk + watchlists on SQLite).
+Deep research subagent · Alerts via Hermes cron · Morning briefing polish · Dedicated TUI. Current slice covers **Phases 1–4** — Phase 2 rebuild adds cache, retry, structured errors, logging, provenance, mock provider, financial statements, market movers, deterministic `calc` package.
 
 ## Portfolio database
 
