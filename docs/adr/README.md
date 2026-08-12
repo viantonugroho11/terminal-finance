@@ -40,8 +40,16 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0018](0018-sec-and-primary-source-integration.md) | SEC EDGAR and primary-source integration | Proposed |
 | [0019](0019-finance-research-output.md) | Deep-research report format and rendering | Proposed |
 
+### Indonesia extension (Phase A/B)
+
+| # | Title | Status |
+|---|---|---|
+| [0020](0020-indonesian-market-data-providers.md) | Indonesian market data providers (IDX/BEI, BI, BPS, OJK) | Accepted (Phase B: IDX landed) |
+| [0021](0021-market-detection-and-symbol-routing.md) | Market detection and symbol-based routing | Accepted |
+
 ## Supporting docs
 
 - [Phase 3 architecture decision matrix](phase-3-decision-matrix.md) — quick-glance table of decisions, alternatives, and rationale.
 - [Phase 3 reference analysis](phase-3-reference-analysis.md) — external projects reviewed (Alpha Vantage MCP, Financial Datasets MCP, MCP FinanceX, FinRobot, FinSphere): what we learn, what we do NOT copy.
 - [Phase 3 implementation sequence](phase-3-implementation-sequence.md) — recommended build order once ADRs are Accepted.
+- [Phase A — Indonesia findings](phase-a-indonesia-findings.md) — architecture map, provider decision matrix, license notes.
