@@ -27,6 +27,16 @@ def _n(v):
 
 class YahooProvider:
     name = "yahoo"
+    tier = "scraped"
+    markets = frozenset({"US", "GLOBAL", "IDX", "CRYPTO"})
+    # Yahoo covers quotes/history globally (including IDX via .JK suffix)
+    # but its IDX fundamentals/dividends/sector coverage is thin — those
+    # capabilities are served by `idx` when the router has it registered.
+    capabilities = frozenset({
+        "quote", "history", "company", "financials", "statements",
+        "news", "market_overview", "market_movers",
+    })
+    requires_api_key = False
     async def quote(self, symbol: str) -> Quote:
         try:
             t = yf.Ticker(symbol)

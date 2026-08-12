@@ -10,6 +10,10 @@ from ..models import (
     Quote, Candle, Company, Financials, NewsItem,
     IncomeStatement, BalanceSheet, CashFlowStatement, FinancialStatements,
     MarketOverview, MarketMovers, MoverItem,
+    DividendEvent, DividendHistory,
+    CorporateAction, CorporateActionHistory,
+    SectorInfo,
+    MacroObservation, MacroSeries,
 )
 
 
@@ -20,6 +24,17 @@ def _seed(symbol: str) -> float:
 
 class MockProvider:
     name = "mock"
+    tier = "mock"
+    markets = frozenset({"US", "GLOBAL", "IDX", "CRYPTO", "MACRO"})
+    capabilities = frozenset({
+        "quote", "history", "company", "financials", "statements",
+        "news", "market_overview", "market_movers",
+        "dividends", "corporate_actions", "sector",
+        "macro:bi_rate", "macro:jisdor", "macro:inflation",
+        "macro:gdp", "macro:cpi", "macro:unemployment",
+        "macro:banking_spi",
+    })
+    requires_api_key = False
 
     async def quote(self, symbol: str) -> Quote:
         price = _seed(symbol)
@@ -119,6 +134,52 @@ class MockProvider:
             crypto={"BTC": await q("BTC-USD"), "ETH": await q("ETH-USD")},
             commodities={"GOLD": await q("GC=F"), "OIL": await q("CL=F")},
             fx={"DXY": await q("DX-Y.NYB")},
+        )
+
+    async def dividends(self, symbol: str) -> DividendHistory:
+        s = _seed(symbol)
+        return DividendHistory(
+            symbol=symbol.upper(),
+            events=[
+                DividendEvent(ex_date=f"{y}-06-15", payment_date=f"{y}-07-15",
+                              amount_per_share=round(s * 0.005, 2), currency="USD")
+                for y in (2023, 2024, 2025)
+            ],
+        )
+
+    async def corporate_actions(self, symbol: str) -> CorporateActionHistory:
+        return CorporateActionHistory(
+            symbol=symbol.upper(),
+            events=[
+                CorporateAction(date="2024-08-01", kind="split",
+                                ratio="2:1", description="Mock 2-for-1 split"),
+            ],
+        )
+
+    async def macro_indicator(self, indicator: str) -> MacroSeries:
+        units = {
+            "bi_rate": "%", "jisdor": "IDR/USD", "inflation": "%",
+            "gdp": "%", "cpi": "index", "unemployment": "%",
+            "banking_spi": "%",
+        }
+        u = units.get(indicator.lower(), "%")
+        return MacroSeries(
+            indicator=indicator, source="mock", unit=u,
+            observations=[
+                MacroObservation(period="2025-06", value=6.00, unit=u),
+                MacroObservation(period="2025-07", value=6.00, unit=u),
+                MacroObservation(period="2025-08", value=5.75, unit=u),
+            ],
+            frequency="monthly",
+            description=f"Mock series for {indicator}",
+            attribution="mock",
+        )
+
+    async def sector(self, symbol: str) -> SectorInfo:
+        return SectorInfo(
+            symbol=symbol.upper(), sector_code="A1", sector_name="Technology",
+            subsector="Software", industry="Application Software",
+            sub_industry="Enterprise SaaS",
         )
 
     async def market_movers(self) -> MarketMovers:
