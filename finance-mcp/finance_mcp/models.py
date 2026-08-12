@@ -151,9 +151,9 @@ class Provenance:
     symbol: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        payload = self.data
-        if hasattr(payload, "__dict__") and not isinstance(payload, dict):
-            payload = _deep_asdict(payload)
+        # Always deep-convert: handles dataclasses, nested dataclasses inside
+        # lists/dicts, and passes primitives through unchanged.
+        payload = _deep_asdict(self.data)
         return {
             "data": payload,
             "provenance": {
