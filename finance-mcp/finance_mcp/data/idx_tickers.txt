@@ -1,0 +1,101 @@
+# IDX ticker allowlist. Used by SymbolResolver to route unsuffixed tickers.
+# One ticker per line, 4-letter IDX standard, uppercase. Refresh via
+# scripts/refresh_idx_tickers.py (Phase B). Comments start with '#'.
+#
+# Seed = liquid LQ45-ish subset. Extend as needed. If a ticker not here,
+# the user must use the .JK suffix to force IDX routing.
+
+# Banks
+BBCA
+BBRI
+BMRI
+BBNI
+BRIS
+BTPS
+BJBR
+BJTM
+NISP
+BNGA
+MEGA
+PNBN
+
+# Telecom
+TLKM
+EXCL
+ISAT
+FREN
+TOWR
+TBIG
+MTEL
+
+# Consumer / FMCG
+UNVR
+ICBP
+INDF
+GGRM
+HMSP
+MYOR
+KLBF
+SIDO
+CPIN
+JPFA
+AMRT
+MAPI
+
+# Automotive / Industrial
+ASII
+UNTR
+HEXA
+ADRO
+INDY
+GJTL
+
+# Metals / Mining / Energy
+ANTM
+TINS
+INCO
+PGAS
+MEDC
+PTBA
+ADRO
+ITMG
+HRUM
+BRPT
+BRMS
+BUMI
+
+# Cement / Materials
+SMGR
+INTP
+SMCB
+JPFA
+
+# Property
+BSDE
+CTRA
+LPKR
+PWON
+SMRA
+ASRI
+
+# Tech / New economy
+GOTO
+BUKA
+EMTK
+
+# Retail / Healthcare / Other
+MIDI
+ACES
+RALS
+LPPF
+SILO
+MIKA
+HEAL
+
+# Airlines / Transport
+GIAA
+CMPP
+BIRD
+
+# Utilities
+POWR
