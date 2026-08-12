@@ -52,7 +52,7 @@ def classify(exc: BaseException, *, provider: str | None = None,
     msg = str(exc) or name
     lower = msg.lower()
 
-    if "rate" in lower and "limit" in lower:
+    if ("rate" in lower and "limit" in lower) or "429" in msg or "too many requests" in lower:
         return FinanceError(ErrorCode.RATE_LIMITED, msg, provider, symbol)
     if "timeout" in name or "timedout" in name or "timeout" in lower:
         return FinanceError(ErrorCode.TIMEOUT, msg, provider, symbol)
