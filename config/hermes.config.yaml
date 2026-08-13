@@ -37,6 +37,10 @@ mcp_servers:
         - get_subsidiaries
         - get_idx_overview
         - get_idx_movers
+        - valuation_dcf
+        - valuation_sensitivity
+        - get_sec_filings
+        - get_sec_facts
         - get_technical
         - get_market_overview
         - get_market_movers

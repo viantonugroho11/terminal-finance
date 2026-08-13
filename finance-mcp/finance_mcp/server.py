@@ -12,6 +12,7 @@ from mcp.server.fastmcp import FastMCP
 from . import cache as _c
 from . import calc as _calc  # noqa: F401
 from . import technical as ta
+from . import valuation as val
 from .errors import FinanceError, ErrorCode, classify
 from .logging_ import tool_call
 from .models import Provenance, _deep_asdict
@@ -21,6 +22,7 @@ from .providers.idx import IdxProvider
 from .providers.bi import BiProvider
 from .providers.bps import BpsProvider
 from .providers.ojk import OjkProvider
+from .providers.sec import SecProvider
 from .providers import MACRO_INDICATOR_TO_CAP
 from .portfolio import db as pdb, service as psvc, watchlist as pwl
 from .resolver import resolve as resolve_symbol
@@ -46,6 +48,8 @@ def _build_router() -> Router:
         r.register(BpsProvider())
     if os.getenv("FINANCE_OJK", "on").lower() != "off":
         r.register(OjkProvider())
+    if os.getenv("FINANCE_SEC", "on").lower() != "off":
+        r.register(SecProvider())
     return r
 
 
@@ -219,6 +223,158 @@ async def get_sector_info(symbol: str) -> dict:
     return await _do("get_sector_info", "sector",
                      (symbol.upper(),), _c.TTL_SECTOR,
                      lambda p: p.sector(symbol), symbol=symbol)
+
+
+@mcp.tool()
+async def get_sec_filings(symbol: str, form_type: str | None = None,
+                          limit: int = 20) -> dict:
+    """SEC EDGAR filings history. form_type: '10-K', '10-Q', '8-K', '4', '13F-HR' (or omit for all recent)."""
+    return await _do("get_sec_filings", "sec:filings",
+                     (symbol.upper(), form_type or "*", limit),
+                     _c.TTL_SEC_FILINGS,
+                     lambda p: p.sec_filings(symbol, form_type, limit),
+                     symbol=symbol)
+
+
+@mcp.tool()
+async def get_sec_facts(symbol: str, concept: str,
+                        taxonomy: str = "us-gaap") -> dict:
+    """SEC XBRL company facts for one concept (e.g. 'Revenues', 'NetIncomeLoss')."""
+    return await _do("get_sec_facts", "sec:facts",
+                     (symbol.upper(), concept, taxonomy),
+                     _c.TTL_SEC_FACTS,
+                     lambda p: p.sec_facts(symbol, concept, taxonomy),
+                     symbol=symbol)
+
+
+@mcp.tool()
+async def valuation_dcf(
+    symbol: str,
+    discount_rate: float | None = None,
+    terminal_growth: float = 0.03,
+    projection_years: int = 5,
+    growth_rate: float | None = None,
+) -> dict:
+    """Deterministic two-stage DCF for a symbol.
+
+    Pulls FCF history + beta + shares from the routed fundamentals /
+    statements providers, then runs finance_mcp.valuation.dcf().
+    Assumptions:
+      - discount_rate defaults to CAPM with rf=0.045, ERP=0.055 using
+        provider-reported beta (fallback beta=1.0).
+      - growth_rate defaults to FCF CAGR from historical statements
+        (fallback 0.05).
+      - net_debt = total_debt - cash from most recent balance sheet.
+    Result carries the full assumption dict for auditability.
+    """
+    async def _compute(p):
+        fundamentals = await p.financials(symbol)
+        stmts = await p.financial_statements(symbol)
+
+        fcf_series = [c.free_cash_flow for c in (stmts.cashflow or [])
+                      if c.free_cash_flow is not None]
+        if not fcf_series:
+            raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
+                               f"No free cash flow history for {symbol}",
+                               provider=p.name, symbol=symbol)
+
+        base_fcf = fcf_series[-1]
+        derived_g = val.cagr(fcf_series) if len(fcf_series) >= 2 else None
+        g = growth_rate if growth_rate is not None else (derived_g or 0.05)
+
+        beta = fundamentals.beta or 1.0
+        r = discount_rate if discount_rate is not None \
+            else val.capm(0.045, beta, 0.055)
+
+        latest_bs = (stmts.balance or [None])[-1]
+        net_debt = None
+        if latest_bs is not None:
+            debt = latest_bs.total_debt
+            cash = latest_bs.cash
+            if debt is not None and cash is not None:
+                net_debt = debt - cash
+
+        shares = None
+        market_cap = getattr(await p.company(symbol), "market_cap", None)
+        # Best-effort shares: fundamentals doesn't carry it directly;
+        # skip per-share if market_cap missing.
+
+        result = val.dcf(
+            base_fcf=base_fcf, growth_rate=g, years=projection_years,
+            discount_rate=r, terminal_growth=terminal_growth,
+            net_debt=net_debt, shares_outstanding=shares,
+        )
+        # Emit as dict; per-share left None when shares unknown — skill
+        # can derive implied upside from market_cap vs enterprise_value.
+        return {
+            "symbol": symbol.upper(),
+            "inputs": {
+                "base_fcf": base_fcf, "growth_rate": g,
+                "derived_growth_rate": derived_g, "projection_years": projection_years,
+                "discount_rate": r, "terminal_growth": terminal_growth,
+                "beta_used": beta, "net_debt": net_debt,
+                "market_cap": market_cap,
+            },
+            "projected_fcf": result.projected_fcf,
+            "pv_explicit": result.pv_explicit,
+            "terminal_value": result.terminal_value,
+            "pv_terminal": result.pv_terminal,
+            "enterprise_value": result.enterprise_value,
+            "equity_value": result.equity_value,
+            "per_share_value": result.per_share_value,
+            "upside_vs_market_cap": (
+                (result.equity_value / market_cap - 1.0)
+                if (result.equity_value and market_cap) else None
+            ),
+        }
+
+    return await _do("valuation_dcf", "statements",
+                     (symbol.upper(), discount_rate or "auto",
+                      terminal_growth, projection_years,
+                      growth_rate or "auto"),
+                     _c.TTL_STATEMENTS,
+                     _compute, symbol=symbol)
+
+
+@mcp.tool()
+async def valuation_sensitivity(
+    symbol: str,
+    discount_rates: list[float] | None = None,
+    terminal_growths: list[float] | None = None,
+    projection_years: int = 5,
+) -> dict:
+    """Sensitivity grid: enterprise value across WACC × terminal-growth."""
+    dr = discount_rates or [0.08, 0.09, 0.10, 0.11, 0.12]
+    tg = terminal_growths or [0.01, 0.02, 0.03, 0.04]
+
+    async def _compute(p):
+        stmts = await p.financial_statements(symbol)
+        fcf_series = [c.free_cash_flow for c in (stmts.cashflow or [])
+                      if c.free_cash_flow is not None]
+        if not fcf_series:
+            raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
+                               f"No free cash flow history for {symbol}",
+                               provider=p.name, symbol=symbol)
+        base_fcf = fcf_series[-1]
+        g = val.cagr(fcf_series) or 0.05
+        latest_bs = (stmts.balance or [None])[-1]
+        net_debt = None
+        if latest_bs is not None and latest_bs.total_debt is not None \
+                and latest_bs.cash is not None:
+            net_debt = latest_bs.total_debt - latest_bs.cash
+        table = val.sensitivity_table(
+            base_fcf, g, projection_years,
+            discount_rates=dr, terminal_growths=tg,
+            net_debt=net_debt,
+        )
+        return {"symbol": symbol.upper(), "base_fcf": base_fcf,
+                "growth_rate_used": g, "net_debt": net_debt,
+                **table}
+
+    return await _do("valuation_sensitivity", "statements",
+                     (symbol.upper(), tuple(dr), tuple(tg), projection_years),
+                     _c.TTL_STATEMENTS,
+                     _compute, symbol=symbol)
 
 
 @mcp.tool()

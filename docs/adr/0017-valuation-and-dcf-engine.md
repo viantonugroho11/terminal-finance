@@ -2,7 +2,15 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase E landed 2026-08-13). Ships `finance_mcp/valuation.py`
+with pure functions (`capm`, `wacc`, `cagr`, `project_fcf`,
+`terminal_value_gordon`, `npv`, `dcf`, `sensitivity_table`,
+`implied_growth`) and two MCP tools (`valuation_dcf`,
+`valuation_sensitivity`) that assemble inputs from statements/
+fundamentals through the router and hand them to the pure math.
+Skill `valuation-analysis` orchestrates + interprets. Reverse-DCF
+(`implied_growth`) is library-only for now — surface as a tool if a
+skill needs it. Extends ADR-0013 (quant engine contract).
 
 ## Context
 
