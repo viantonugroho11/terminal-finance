@@ -26,6 +26,10 @@ services:
       FINANCE_OJK_SPI_PATH: ${FINANCE_OJK_SPI_PATH:-}
       # Router config path (defaults to bundled YAML).
       FINANCE_ROUTING_CONFIG: /opt/data/config/finance.routing.yaml
+      # Telegram gateway (optional — enables telegram_* MCP tools).
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS:-}
+      TELEGRAM_ALERT_CHAT_ID: ${TELEGRAM_ALERT_CHAT_ID:-}
     networks:
       - hermes-net
     healthcheck:
@@ -48,6 +52,9 @@ services:
       - "9119:9119"   # Dashboard
     environment:
       HERMES_DASHBOARD: "1"
+      # Native Telegram gateway — Hermes handles chat + routes to MCP tools.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS:-}
     networks:
       - hermes-net
     command: ["gateway", "run"]

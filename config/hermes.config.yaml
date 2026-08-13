@@ -59,6 +59,10 @@ mcp_servers:
         - watchlist_remove
         - watchlist_list
         - watchlist_quotes
+        - telegram_get_me
+        - telegram_send_message
+        - telegram_send_alert
+        - telegram_get_updates
       resources: false
 
 # Skills live at /opt/data/skills — mounted from ../finance-skills in compose.
