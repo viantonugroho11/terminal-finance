@@ -38,7 +38,7 @@ def _default_ua() -> str:
     if not ua:
         # SEC policy requires identifying UA; keep a clear placeholder
         # so misconfig is obvious in error messages, not a stealth 403.
-        return "finance-mcp (contact-unset — set FINANCE_SEC_USER_AGENT)"
+        return "finance-mcp (contact-unset - set FINANCE_SEC_USER_AGENT)"
     return ua
 
 

@@ -679,6 +679,25 @@ def main() -> None:
     port = int(os.getenv("FINANCE_MCP_PORT", "7800"))
     mcp.settings.host = host
     mcp.settings.port = port
+
+    # FastMCP's default DNS-rebinding guard only trusts localhost. In
+    # docker-compose, Hermes reaches us via the service name
+    # `finance-mcp:7800` on the bridge network, so the default 421s
+    # every request. Extend the allowed host+origin lists via env
+    # (comma-separated) or fall back to the compose service name.
+    ts = mcp.settings.transport_security
+    extra_hosts = os.getenv("FINANCE_MCP_ALLOWED_HOSTS", "finance-mcp:*")
+    extra_origins = os.getenv(
+        "FINANCE_MCP_ALLOWED_ORIGINS",
+        "http://finance-mcp:*",
+    )
+    ts.allowed_hosts = list(ts.allowed_hosts) + [
+        h.strip() for h in extra_hosts.split(",") if h.strip()
+    ]
+    ts.allowed_origins = list(ts.allowed_origins) + [
+        o.strip() for o in extra_origins.split(",") if o.strip()
+    ]
+
     mcp.run(transport="streamable-http")
 
 
