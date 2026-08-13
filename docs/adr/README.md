@@ -35,7 +35,7 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0013](0013-quantitative-analysis-engine.md) | Quantitative analysis engine (deterministic math) | Accepted |
 | [0014](0014-advanced-financial-analyst-skills.md) | Advanced financial analyst skill decomposition | Accepted (single-context) |
 | [0015](0015-multi-agent-financial-research.md) | Multi-agent financial research via Hermes subagents | Proposed |
-| [0016](0016-research-evaluation-and-quality.md) | Research evaluator loop with bounded iterations | Proposed |
+| [0016](0016-research-evaluation-and-quality.md) | Research evaluator loop with bounded iterations | Accepted (deterministic scorer; LLM loop Proposed) |
 | [0017](0017-valuation-and-dcf-engine.md) | DCF and valuation engine (deterministic) | Accepted |
 | [0018](0018-sec-and-primary-source-integration.md) | SEC EDGAR and primary-source integration | Accepted |
 | [0019](0019-finance-research-output.md) | Deep-research report format and rendering | Accepted |

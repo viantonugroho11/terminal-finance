@@ -140,6 +140,19 @@ least one tool result from this turn's message history. Confirm every
 `[^n]` in the body resolves in Sources. If not, fix or delete the
 claim.
 
+Then call `finance.evaluate_report(markdown, expected_symbol=<SYM>)`
+on the final Markdown. Verdict handling:
+
+- `accept` (score ≥ 80): publish as-is.
+- `retry` (60–79): read `misses[]`, fix the specific weak criteria,
+  re-emit. Cap: one retry.
+- `low_confidence` (< 60) or after one retry still `retry`:
+  publish with a leading `> **[Low-Confidence]** — evaluator score X/100`
+  banner and inline the evaluator's `misses[]` summary at the end of
+  Confidence section.
+
+Never publish while ignoring the evaluator's verdict.
+
 ## Fallback
 
 If Hermes reports a tool timeout mid-report, keep the sections whose

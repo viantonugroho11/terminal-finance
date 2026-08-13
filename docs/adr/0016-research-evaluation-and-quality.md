@@ -2,7 +2,16 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted for the deterministic path (Phase F Step 4 landed 2026-08-13).
+Ships `finance_mcp/evaluator.py` — pure regex + citation-graph + numeric
+cross-reference scoring against the seven-criterion rubric from
+`phase-f-multi-agent-plan.md`. Weights sum to 100; accept ≥ 80;
+retry 60–79; low-confidence < 60. MCP tool `evaluate_report(markdown,
+expected_symbol?)` returns `{score, verdict, passes, misses, counters}`
+so a coordinator skill (or a future Hermes-side loop) can gate
+publication. LLM-driven retry loop still Proposed — it needs
+Hermes-side agent messaging to close the loop, but the evaluator
+itself is now runnable today from any skill.
 
 ## Context
 

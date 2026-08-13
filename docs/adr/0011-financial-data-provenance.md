@@ -2,13 +2,15 @@
 
 ## Status
 
-Accepted (Phase D landed 2026-08-13). Provenance envelope now carries
+Accepted (Phase D + F landed 2026-08-13). Provenance envelope now carries
 `tier` alongside `source`; tier ranking lives at
 `finance_mcp/schema.py::TIER_RANK` (primary=0, aggregator=1, scraped=2,
 mock=3). Skills consuming multi-source data pick the lowest-rank tier
-on conflict. Extends ADR-0004. Multi-source `call_all` fan-out for
-explicit cross-verification remains open (blocked on ADR-0018 SEC EDGAR
-provider being second primary source for US).
+on conflict. Multi-source `Router.call_all(...)` shipped in Phase F —
+fan-out concurrent across every registered provider in the chain,
+silently drops errors, returns list of `(value, provider)` pairs for
+explicit cross-verification against the tier hierarchy. Extends
+ADR-0004.
 
 ## Context
 

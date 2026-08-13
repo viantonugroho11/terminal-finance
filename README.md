@@ -98,6 +98,8 @@ Market / research (every reply is `{data, provenance: {source, retrieved_at, cac
 | `resolve_symbol_tool(symbol)` | diagnostics: show how the router will classify a symbol |
 | `valuation_dcf(symbol, ...)` | Deterministic two-stage DCF (CAPM discount, FCF projection, Gordon terminal) |
 | `valuation_sensitivity(symbol, ...)` | DCF grid over WACC × terminal-growth |
+| `valuation_implied_growth(symbol, price, fcf_per_share, ...)` | Reverse-DCF: implied growth rate given market price |
+| `evaluate_report(markdown, expected_symbol?)` | Score a research report against the ADR-0016 rubric (deterministic; verdict = accept/retry/low_confidence) |
 | `get_sec_filings(symbol, form_type?, limit)` | SEC EDGAR filings history (10-K, 10-Q, 8-K, Form 4, 13F-HR) |
 | `get_sec_facts(symbol, concept, taxonomy)` | SEC XBRL company facts (e.g. Revenues, NetIncomeLoss) |
 | `get_technical(symbol, period)` | SMA(20/50/200), EMA20, RSI14, MACD, vol, drawdown — **deterministic** |
