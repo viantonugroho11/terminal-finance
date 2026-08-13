@@ -40,6 +40,10 @@ CAP_SUBSIDIARIES      = "subsidiaries"
 CAP_IDX_OVERVIEW      = "idx_market_overview"
 CAP_IDX_MOVERS        = "idx_market_movers"
 
+# SEC EDGAR (US primary source) — ADR-0018.
+CAP_SEC_FILINGS       = "sec:filings"
+CAP_SEC_FACTS         = "sec:facts"
+
 # Macro capabilities — canonical indicator names live under macro:*.
 CAP_MACRO_BI_RATE      = "macro:bi_rate"
 CAP_MACRO_JISDOR       = "macro:jisdor"

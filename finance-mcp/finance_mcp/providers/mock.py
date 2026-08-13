@@ -48,6 +48,7 @@ class MockProvider:
         "ipo_calendar", "trading_calendar", "disclosures",
         "board", "shareholders", "subsidiaries",
         "idx_market_overview", "idx_market_movers",
+        "sec:filings", "sec:facts",
     })
     requires_api_key = False
 
@@ -168,6 +169,41 @@ class MockProvider:
             events=[
                 CorporateAction(date="2024-08-01", kind="split",
                                 ratio="2:1", description="Mock 2-for-1 split"),
+            ],
+        )
+
+    async def sec_filings(self, symbol: str, form_type: str | None = None,
+                          limit: int = 20):
+        from ..models import SecFiling, SecFilings
+        forms = [f for f in ("10-K", "10-Q", "8-K", "4")
+                 if (not form_type or f == form_type)]
+        return SecFilings(
+            symbol=symbol.upper(), cik="0000000000",
+            entity_name=f"{symbol.upper()} Inc.",
+            items=[SecFiling(
+                accession_no=f"0001-{i:04d}", form=f,
+                filed_date=f"2025-0{i+1}-15", report_date=f"2025-0{i+1}-01",
+                primary_document="filing.htm",
+                url=f"https://example.com/edgar/{f}",
+            ) for i, f in enumerate(forms[:limit])],
+        )
+
+    async def sec_facts(self, symbol: str, concept: str,
+                        taxonomy: str = "us-gaap"):
+        from ..models import SecFactObservation, SecFactSeries
+        return SecFactSeries(
+            symbol=symbol.upper(), cik="0000000000",
+            concept=concept, taxonomy=taxonomy,
+            label=f"Mock {concept}",
+            description=f"Mock XBRL series for {concept}",
+            observations=[
+                SecFactObservation(value=100.0 + i, unit="USD",
+                                   period_end=f"2024-0{i+1}-30",
+                                   period_start=f"2024-0{i}-01" if i else None,
+                                   form="10-Q",
+                                   filed_date=f"2024-0{i+2}-15",
+                                   accession_no=f"0002-{i:04d}")
+                for i in range(3)
             ],
         )
 

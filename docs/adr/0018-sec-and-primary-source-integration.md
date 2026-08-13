@@ -2,7 +2,17 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase E landed 2026-08-13). Ships `finance_mcp/providers/sec.py`
+(tier=primary, markets={US}, capabilities={sec:filings, sec:facts}) and
+two MCP tools: `get_sec_filings(symbol, form_type?, limit)` +
+`get_sec_facts(symbol, concept, taxonomy)`. Ticker→CIK map fetched
+from https://www.sec.gov/files/company_tickers.json on first call and
+cached in-process; injectable via `SecProvider(ticker_map=...)` for
+tests. Requires `FINANCE_SEC_USER_AGENT` (SEC policy — bare
+`"Name email@example.com"` string). Rate-limited to 10 req/sec (429
+mapped to `RATE_LIMITED` with `retry_after_seconds=1`). Insider Form 4
+and 13F-HR reachable via the same `sec:filings` capability with
+`form_type` filter.
 
 ## Context
 

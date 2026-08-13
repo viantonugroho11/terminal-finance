@@ -302,6 +302,48 @@ class IdxMarketOverview:
     sectors: list[SectorPerf] = field(default_factory=list)
 
 
+# ── SEC EDGAR (US primary source, ADR-0018) ──────────────────────────
+
+@dataclass
+class SecFiling:
+    accession_no: str
+    form: str                     # "10-K", "10-Q", "8-K", "4", "13F-HR", ...
+    filed_date: str
+    report_date: str | None
+    primary_document: str | None
+    url: str | None
+
+
+@dataclass
+class SecFilings:
+    symbol: str
+    cik: str
+    entity_name: str | None
+    items: list[SecFiling] = field(default_factory=list)
+
+
+@dataclass
+class SecFactObservation:
+    value: float
+    unit: str
+    period_end: str
+    period_start: str | None
+    form: str | None              # form that reported it (10-K/10-Q)
+    filed_date: str | None
+    accession_no: str | None
+
+
+@dataclass
+class SecFactSeries:
+    symbol: str
+    cik: str
+    concept: str                  # e.g. "Revenues", "NetIncomeLoss"
+    taxonomy: str                 # "us-gaap" | "dei" | "ifrs-full"
+    label: str | None
+    description: str | None
+    observations: list[SecFactObservation] = field(default_factory=list)
+
+
 @dataclass
 class NewsItem:
     title: str

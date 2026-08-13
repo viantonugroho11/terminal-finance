@@ -82,6 +82,10 @@ _DEFAULT_PREFERENCE: dict[tuple[str, str], list[str]] = {
     ("idx_market_overview",  "IDX"):   ["idx"],
     ("idx_market_movers",    "IDX"):   ["idx"],
 
+    # SEC EDGAR — US primary source.
+    ("sec:filings", "US"): ["sec"],
+    ("sec:facts",   "US"): ["sec"],
+
     # Macro — Indonesia. Bucket "MACRO" (no symbol).
     ("macro:bi_rate",      "MACRO"): ["bi"],
     ("macro:jisdor",       "MACRO"): ["bi"],
