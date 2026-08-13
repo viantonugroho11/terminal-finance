@@ -40,6 +40,14 @@ Hermes Agent (Docker: nousresearch/hermes-agent)
 
 Hermes provides: agent runtime, memory, skill loader, MCP client, tool routing, cron, provider routing, CLI, terminal backends. We add: financial domain logic only.
 
+**Deep docs:**
+- [ARCHITECTURE](docs/ARCHITECTURE.md) — data flow, module map, design decisions, failure modes
+- [API](docs/API.md) — every tool with request/response examples
+- [PROVIDERS](docs/PROVIDERS.md) — per-upstream: endpoints, auth, failure modes
+- [RUNBOOKS](docs/RUNBOOKS.md) — refresh allowlist, add provider, debug failure, cut release
+- [CONTRIBUTING](docs/CONTRIBUTING.md) — env setup, test flow, PR checklist
+- [CHANGELOG](CHANGELOG.md) — release history
+
 ### Indonesian market support
 
 Market-aware routing (ADR-0020 / ADR-0021):
