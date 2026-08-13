@@ -27,6 +27,13 @@ done
 
 echo "[4/4] docker compose up"
 cd "$ROOT/docker"
+# .env is optional — provider toggles + credentials for BPS/SEC/OJK.
+if [ -f "$ROOT/.env" ] && [ ! -f "$ROOT/docker/.env" ]; then
+  ln -sf "$ROOT/.env" "$ROOT/docker/.env"
+fi
+if [ ! -f "$ROOT/.env" ] && [ ! -f "$ROOT/docker/.env" ]; then
+  echo "  (no .env found — copy .env.example to .env and set BPS/SEC/OJK secrets if you want those providers live)"
+fi
 docker compose up -d --build
 
 cat <<EOF

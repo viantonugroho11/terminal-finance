@@ -8,8 +8,24 @@ services:
       - "7800:7800"
     volumes:
       - ${HERMES_DATA:-~/.hermes}/finance:/opt/data/finance
+      - ../config/finance.routing.yaml:/opt/data/config/finance.routing.yaml:ro
+      # Optional OJK SPI snapshot — operator mirrors from data.ojk.go.id/SJKPublic.
+      # - ${HERMES_DATA:-~/.hermes}/ojk_spi.json:/opt/data/ojk_spi.json:ro
     environment:
       FINANCE_DB: /opt/data/finance/finance.db
+      # Provider toggles — set to "off" to disable one provider without
+      # touching code or restarting anything else.
+      FINANCE_IDX: ${FINANCE_IDX:-on}
+      FINANCE_BI:  ${FINANCE_BI:-on}
+      FINANCE_BPS: ${FINANCE_BPS:-on}
+      FINANCE_OJK: ${FINANCE_OJK:-on}
+      FINANCE_SEC: ${FINANCE_SEC:-on}
+      # Credentials — read from .env or shell. Never committed.
+      FINANCE_BPS_API_KEY: ${FINANCE_BPS_API_KEY:-}
+      FINANCE_SEC_USER_AGENT: ${FINANCE_SEC_USER_AGENT:-}
+      FINANCE_OJK_SPI_PATH: ${FINANCE_OJK_SPI_PATH:-}
+      # Router config path (defaults to bundled YAML).
+      FINANCE_ROUTING_CONFIG: /opt/data/config/finance.routing.yaml
     networks:
       - hermes-net
     healthcheck:

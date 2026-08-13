@@ -182,6 +182,8 @@ Environment overrides — all optional, all safe defaults:
 | `FINANCE_SEC_USER_AGENT` | — | SEC policy — set to `"Your Name your@email"` |
 | `FINANCE_ROUTING_CONFIG` | — | override path to routing YAML (defaults to `config/finance.routing.yaml`) |
 
+Copy `.env.example` → `.env` at repo root before `./scripts/bootstrap.sh` if you want any of the credentialed providers (BPS/SEC/OJK) live inside Docker. Bootstrap symlinks it under `docker/.env` automatically.
+
 No secrets are committed. API keys (when a provider needs them) must come from env vars only.
 
 ## Architecture decisions
