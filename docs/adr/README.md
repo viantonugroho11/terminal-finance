@@ -36,9 +36,9 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0014](0014-advanced-financial-analyst-skills.md) | Advanced financial analyst skill decomposition | Proposed |
 | [0015](0015-multi-agent-financial-research.md) | Multi-agent financial research via Hermes subagents | Proposed |
 | [0016](0016-research-evaluation-and-quality.md) | Research evaluator loop with bounded iterations | Proposed |
-| [0017](0017-valuation-and-dcf-engine.md) | DCF and valuation engine (deterministic) | Proposed |
-| [0018](0018-sec-and-primary-source-integration.md) | SEC EDGAR and primary-source integration | Proposed |
-| [0019](0019-finance-research-output.md) | Deep-research report format and rendering | Proposed |
+| [0017](0017-valuation-and-dcf-engine.md) | DCF and valuation engine (deterministic) | Accepted |
+| [0018](0018-sec-and-primary-source-integration.md) | SEC EDGAR and primary-source integration | Accepted |
+| [0019](0019-finance-research-output.md) | Deep-research report format and rendering | Accepted |
 
 ### Indonesia extension (Phase A/B)
 
@@ -54,3 +54,4 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 - [Phase 3 reference analysis](phase-3-reference-analysis.md) — external projects reviewed (Alpha Vantage MCP, Financial Datasets MCP, MCP FinanceX, FinRobot, FinSphere): what we learn, what we do NOT copy.
 - [Phase 3 implementation sequence](phase-3-implementation-sequence.md) — recommended build order once ADRs are Accepted.
 - [Phase A — Indonesia findings](phase-a-indonesia-findings.md) — architecture map, provider decision matrix, license notes.
+- [Phase F — Multi-agent research plan](phase-f-multi-agent-plan.md) — implementation plan for ADR-0014 / 0015 / 0016 (blocked on Hermes subagent runtime).

@@ -96,6 +96,10 @@ Market / research (every reply is `{data, provenance: {source, retrieved_at, cac
 | `get_idx_overview()` | IHSG + LQ45 + IDX sector performance |
 | `get_idx_movers()` | IDX top gainers / losers / most active |
 | `resolve_symbol_tool(symbol)` | diagnostics: show how the router will classify a symbol |
+| `valuation_dcf(symbol, ...)` | Deterministic two-stage DCF (CAPM discount, FCF projection, Gordon terminal) |
+| `valuation_sensitivity(symbol, ...)` | DCF grid over WACC × terminal-growth |
+| `get_sec_filings(symbol, form_type?, limit)` | SEC EDGAR filings history (10-K, 10-Q, 8-K, Form 4, 13F-HR) |
+| `get_sec_facts(symbol, concept, taxonomy)` | SEC XBRL company facts (e.g. Revenues, NetIncomeLoss) |
 | `get_technical(symbol, period)` | SMA(20/50/200), EMA20, RSI14, MACD, vol, drawdown — **deterministic** |
 | `get_market_overview()` | S&P/NASDAQ/DOW/Russell/VIX + BTC/ETH + GOLD/OIL + DXY |
 | `get_market_movers()` | top gainers / losers / most active |
@@ -170,8 +174,11 @@ Environment overrides — all optional, all safe defaults:
 | `FINANCE_BI` | `on` | disable Bank Indonesia provider with `off` |
 | `FINANCE_BPS` | `on` | disable BPS provider with `off` |
 | `FINANCE_OJK` | `on` | disable OJK provider with `off` |
+| `FINANCE_SEC` | `on` | disable SEC EDGAR provider with `off` |
 | `FINANCE_BPS_API_KEY` | — | required for live BPS calls; register at https://webapi.bps.go.id |
 | `FINANCE_OJK_SPI_PATH` | — | path to JSON snapshot mirrored from https://data.ojk.go.id/SJKPublic |
+| `FINANCE_SEC_USER_AGENT` | — | SEC policy — set to `"Your Name your@email"` |
+| `FINANCE_ROUTING_CONFIG` | — | override path to routing YAML (defaults to `config/finance.routing.yaml`) |
 
 No secrets are committed. API keys (when a provider needs them) must come from env vars only.
 
