@@ -1,6 +1,12 @@
 # Finance Terminal
 
-Specialized finance layer on top of [Hermes Agent](https://hermes-agent.nousresearch.com/docs) by Nous Research.
+[![version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/viantonugroho11/terminal-finance/releases/tag/v0.2.0)
+[![tests](https://img.shields.io/badge/tests-211%20passing-brightgreen.svg)]()
+[![tools](https://img.shields.io/badge/mcp%20tools-37-informational.svg)]()
+[![skills](https://img.shields.io/badge/skills-12-informational.svg)]()
+[![providers](https://img.shields.io/badge/providers-7-informational.svg)]()
+
+Specialized finance layer on top of [Hermes Agent](https://hermes-agent.nousresearch.com/docs) by Nous Research. Covers US markets (Yahoo + SEC EDGAR), Indonesian equities (IDX/BEI), and Indonesian macro (Bank Indonesia, BPS, OJK).
 
 **Not a Hermes fork.** Hermes runs unmodified. This repo adds:
 
@@ -226,9 +232,22 @@ Supporting: [decision matrix](docs/adr/phase-3-decision-matrix.md) · [reference
 
 Every failure returns `{error: {code, message, provider, symbol, retry_after_seconds?}}`. Codes: `SYMBOL_NOT_FOUND`, `INVALID_SYMBOL`, `PROVIDER_UNAVAILABLE`, `RATE_LIMITED`, `AUTHENTICATION_FAILED`, `DATA_UNAVAILABLE`, `TIMEOUT`, `INTERNAL`. Skills react per-code (retry, apologize, degrade); they never invent fake values on error.
 
-## Roadmap (spec Phases 5–10)
+## Roadmap
 
-Deep research subagent · Alerts via Hermes cron · Morning briefing polish · Dedicated TUI. Current slice covers **Phases 1–4** — Phase 2 rebuild adds cache, retry, structured errors, logging, provenance, mock provider, financial statements, market movers, deterministic `calc` package.
+**Shipped (v0.2.0, 2026-08-13):**
+- Phases 1–2 baseline: cache, retry, structured errors, provenance, mock provider, statements, movers, deterministic `calc`
+- Phase A/B: Indonesia extension — `SymbolResolver` + market-aware Router + `IdxProvider`
+- Phase C: macro providers — Bank Indonesia (BI-Rate, JISDOR) + BPS (GDP/CPI/inflation/unemployment) + OJK (banking SPI)
+- Phase D: 12 IDX microstructure capabilities (foreign flow, broker activity, order book, disclosures, board, shareholders, subsidiaries, IPO/trading calendar, sector rollup, IDX market overview + movers) + YAML routing config + tier hierarchy in provenance + schema versioning
+- Phase E: DCF/valuation engine (CAPM/WACC/Gordon/sensitivity/reverse-DCF) + SEC EDGAR primary source (filings + XBRL facts) + canonical deep-research report format
+- Phase F Steps 1–2: six specialist analyst skills + `equity-research` coordinator + deterministic evaluator loop (ADR-0016) + in-process subagent fan-out shim (ADR-0015 bridge)
+
+**Ahead (blocked on Hermes-side runtime):**
+- Native Hermes subagent spawn for true parallel research (ADR-0015 native tier)
+- LLM-adjudicated evaluator retry loop (ADR-0016 LLM tier)
+
+**Ahead (in-repo):**
+- Alerts via Hermes cron · Morning briefing polish · Dedicated TUI · Crypto-analysis with IDR pairs
 
 ## Portfolio database
 
