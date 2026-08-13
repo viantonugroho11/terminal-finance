@@ -2,7 +2,12 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase B–E landed 2026-08-13). All Protocols carry
+`tier`, `markets`, `capabilities`, `requires_api_key`. Providers
+registered: `yahoo`, `idx`, `bi`, `bps`, `ojk`, `sec`, `mock`. Router
+(ADR-0012) picks per capability + market + tier; provenance envelope
+(ADR-0011) surfaces the winning tier for skill-side conflict
+resolution.
 
 ## Context
 

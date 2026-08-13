@@ -5,7 +5,7 @@ Specialized finance layer on top of [Hermes Agent](https://hermes-agent.nousrese
 **Not a Hermes fork.** Hermes runs unmodified. This repo adds:
 
 - `finance-mcp/` — Python MCP server exposing quote/history/fundamentals/technicals/news
-- `finance-skills/` — Hermes skills (`stock-analysis`, `crypto-analysis`, `market-overview`) that orchestrate the MCP tools
+- `finance-skills/` — Hermes skills (11 total): `stock-analysis`, `crypto-analysis`, `market-overview`, `portfolio-analysis`, `risk-analysis`, `valuation-analysis`, `fundamental-analysis`, `technical-analysis`, `catalyst-analysis`, `peer-analysis`, `macro-context`, and the `equity-research` coordinator that composes them
 - `config/` — `hermes.config.yaml` (registers the finance MCP) + `SOUL.md` (finance persona + safety rules)
 - `docker/` — compose stack: `nousresearch/hermes-agent` + `finance-mcp` sidecar on shared bridge network
 

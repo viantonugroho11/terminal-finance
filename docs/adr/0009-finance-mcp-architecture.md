@@ -2,7 +2,10 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase E landed 2026-08-13). finance-mcp is a single gateway
+process; specialized upstreams are provider adapters inside the same
+process (not sub-MCPs). Router owns capability selection. This shape
+is stable and reflected in README §Architecture.
 
 ## Context
 

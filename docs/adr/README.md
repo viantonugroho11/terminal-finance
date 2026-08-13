@@ -26,14 +26,14 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 
 | # | Title | Status |
 |---|---|---|
-| [0007](0007-finance-hermes-architecture.md) | Finance Hermes overall architecture (target stack) | Proposed |
-| [0008](0008-multi-provider-financial-data.md) | Multi-provider financial data with capability tags | Proposed |
-| [0009](0009-finance-mcp-architecture.md) | Finance MCP shape — gateway + specialized backends | Proposed |
+| [0007](0007-finance-hermes-architecture.md) | Finance Hermes overall architecture (target stack) | Accepted |
+| [0008](0008-multi-provider-financial-data.md) | Multi-provider financial data with capability tags | Accepted |
+| [0009](0009-finance-mcp-architecture.md) | Finance MCP shape — gateway + specialized backends | Accepted |
 | [0010](0010-financial-data-normalization.md) | Canonical financial data models + schema versioning | Accepted |
 | [0011](0011-financial-data-provenance.md) | Data provenance, source hierarchy, conflict resolution | Accepted |
 | [0012](0012-intelligent-provider-routing.md) | Capability-based provider router | Accepted |
 | [0013](0013-quantitative-analysis-engine.md) | Quantitative analysis engine (deterministic math) | Accepted |
-| [0014](0014-advanced-financial-analyst-skills.md) | Advanced financial analyst skill decomposition | Proposed |
+| [0014](0014-advanced-financial-analyst-skills.md) | Advanced financial analyst skill decomposition | Accepted (single-context) |
 | [0015](0015-multi-agent-financial-research.md) | Multi-agent financial research via Hermes subagents | Proposed |
 | [0016](0016-research-evaluation-and-quality.md) | Research evaluator loop with bounded iterations | Proposed |
 | [0017](0017-valuation-and-dcf-engine.md) | DCF and valuation engine (deterministic) | Accepted |

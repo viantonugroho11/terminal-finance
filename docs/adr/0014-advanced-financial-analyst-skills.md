@@ -2,7 +2,14 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted for single-context composition (Phase F Steps 1–2 landed
+2026-08-13). Ships six specialist skills — `fundamental-analysis`,
+`technical-analysis`, `catalyst-analysis`, `peer-analysis`,
+`macro-context`, `valuation-analysis` — plus the `equity-research`
+coordinator that runs them inline in one Hermes context. Fan-out via
+Hermes subagents (Phase F Step 3, ADR-0015) waits on external Hermes
+runtime; the coordinator's Procedure section documents the switch
+point when it lands. See `docs/adr/phase-f-multi-agent-plan.md`.
 
 ## Context
 

@@ -2,8 +2,12 @@
 
 ## Status
 
-Proposed — target architecture for Phase 3+. Supersedes no earlier ADR;
-extends ADR-0001 (transport), ADR-0002 (provider abstraction).
+Accepted (Phase E landed 2026-08-13). Target architecture is now the
+in-production shape: Hermes (unmodified) + finance-mcp sidecar with
+router-selected providers (yahoo, idx, bi, bps, ojk, sec, mock), plus
+finance-skills orchestrating tool calls. Compose stack ships in
+`docker/`. README §Architecture reflects the same picture. Extends
+ADR-0001 (transport), ADR-0002 (Protocols).
 
 ## Context
 
