@@ -134,6 +134,174 @@ class SectorInfo:
     sub_industry: str | None
 
 
+# ── IDX market-microstructure extensions ─────────────────────────────
+
+@dataclass
+class ForeignFlowDay:
+    date: str
+    buy_value: float | None
+    sell_value: float | None
+    net_value: float | None
+    currency: str = "IDR"
+
+
+@dataclass
+class ForeignFlow:
+    symbol: str
+    days: list[ForeignFlowDay] = field(default_factory=list)
+
+
+@dataclass
+class SearchResult:
+    symbol: str
+    name: str
+    sector: str | None = None
+    market: str = "IDX"
+
+
+@dataclass
+class BrokerActivityRow:
+    broker_code: str
+    broker_name: str | None
+    buy_lot: int | None
+    sell_lot: int | None
+    buy_value: float | None
+    sell_value: float | None
+    net_value: float | None
+
+
+@dataclass
+class BrokerActivity:
+    symbol: str
+    date: str
+    rows: list[BrokerActivityRow] = field(default_factory=list)
+
+
+@dataclass
+class OrderBookLevel:
+    price: float
+    volume: int
+    orders: int | None = None
+
+
+@dataclass
+class OrderBook:
+    symbol: str
+    timestamp: str
+    bids: list[OrderBookLevel] = field(default_factory=list)
+    asks: list[OrderBookLevel] = field(default_factory=list)
+
+
+@dataclass
+class IpoEvent:
+    symbol: str
+    name: str
+    listing_date: str
+    offer_price: float | None
+    shares_offered: int | None
+    sector: str | None = None
+
+
+@dataclass
+class IpoCalendar:
+    events: list[IpoEvent] = field(default_factory=list)
+
+
+@dataclass
+class TradingCalendarDay:
+    date: str
+    is_trading_day: bool
+    holiday_name: str | None = None
+
+
+@dataclass
+class TradingCalendar:
+    year: int
+    days: list[TradingCalendarDay] = field(default_factory=list)
+
+
+@dataclass
+class DisclosureItem:
+    date: str
+    title: str
+    category: str | None
+    url: str | None
+
+
+@dataclass
+class DisclosureFeed:
+    symbol: str
+    items: list[DisclosureItem] = field(default_factory=list)
+
+
+@dataclass
+class BoardMember:
+    name: str
+    position: str
+    since: str | None = None
+
+
+@dataclass
+class Board:
+    symbol: str
+    commissioners: list[BoardMember] = field(default_factory=list)
+    directors: list[BoardMember] = field(default_factory=list)
+
+
+@dataclass
+class ShareholderEntry:
+    name: str
+    kind: str | None          # "individual" | "institution" | "government"
+    shares: int | None
+    pct: float | None
+
+
+@dataclass
+class Shareholders:
+    symbol: str
+    holders: list[ShareholderEntry] = field(default_factory=list)
+
+
+@dataclass
+class Subsidiary:
+    name: str
+    ownership_pct: float | None
+    business: str | None
+
+
+@dataclass
+class SubsidiaryList:
+    symbol: str
+    subsidiaries: list[Subsidiary] = field(default_factory=list)
+
+
+# ── IDX market-wide (index / sector / movers) ─────────────────────────
+
+@dataclass
+class IndexQuote:
+    code: str                   # e.g. "IHSG", "LQ45"
+    value: float
+    change: float
+    change_percent: float
+    volume: int | None
+    value_traded: float | None  # nominal traded value (IDR)
+    timestamp: str
+
+
+@dataclass
+class SectorPerf:
+    sector_code: str
+    sector_name: str
+    change_percent: float
+    value_traded: float | None = None
+
+
+@dataclass
+class IdxMarketOverview:
+    indices: list[IndexQuote] = field(default_factory=list)
+    sectors: list[SectorPerf] = field(default_factory=list)
+
+
 @dataclass
 class NewsItem:
     title: str

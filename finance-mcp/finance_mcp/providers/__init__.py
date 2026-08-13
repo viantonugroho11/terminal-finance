@@ -26,6 +26,20 @@ CAP_DIVIDENDS     = "dividends"
 CAP_CORP_ACTIONS  = "corporate_actions"
 CAP_SECTOR        = "sector"
 
+# IDX-specific microstructure + market-wide capabilities.
+CAP_FOREIGN_FLOW      = "foreign_flow"
+CAP_SEARCH            = "search"
+CAP_BROKER_ACTIVITY   = "broker_activity"
+CAP_ORDER_BOOK        = "order_book"
+CAP_IPO_CALENDAR      = "ipo_calendar"
+CAP_TRADING_CALENDAR  = "trading_calendar"
+CAP_DISCLOSURES       = "disclosures"
+CAP_BOARD             = "board"
+CAP_SHAREHOLDERS      = "shareholders"
+CAP_SUBSIDIARIES      = "subsidiaries"
+CAP_IDX_OVERVIEW      = "idx_market_overview"
+CAP_IDX_MOVERS        = "idx_market_movers"
+
 # Macro capabilities — canonical indicator names live under macro:*.
 CAP_MACRO_BI_RATE      = "macro:bi_rate"
 CAP_MACRO_JISDOR       = "macro:jisdor"
