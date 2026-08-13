@@ -2,7 +2,12 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase E landed 2026-08-13). Template + section grammar +
+citation rules live at `docs/report-format-template.md`. Renderer
+implementations (terminal TUI, HTML pandoc template, Slack digest)
+follow-up work — the format itself is now fixed at version 1.0.
+Skills MUST emit reports matching the template; skill authors treat
+it as a contract, not a suggestion.
 
 ## Context
 
