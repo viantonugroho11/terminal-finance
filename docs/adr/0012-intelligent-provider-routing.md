@@ -2,7 +2,13 @@
 
 ## Status
 
-Proposed — Phase 3.
+Accepted (Phase B 2026-08-13 shipped `finance_mcp/router.py` +
+capability/market filtering + fallback chain; Phase D 2026-08-13
+lifted the preference table to `config/finance.routing.yaml` with
+built-in defaults as fallback, added startup `validate()`, and exposed
+`config_source` + `routing_warnings` via `cache_stats` for
+diagnostics). `Router.call_all` (multi-source verification) remains
+future work.
 
 ## Context
 

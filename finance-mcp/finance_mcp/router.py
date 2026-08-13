@@ -1,15 +1,24 @@
 """Capability + market router. See ADR-0012 and ADR-0021.
 
-Deterministic, dependency-free. Picks a provider for a request based on:
+Picks a provider for a request based on:
   1. capability the caller wants
   2. market from SymbolResolver
-  3. tier priority (primary > aggregator > scraped > mock)
-  4. explicit per-(capability, market) preference table
+  3. explicit per-(capability, market) preference (from
+     config/finance.routing.yaml, or the built-in defaults below)
+  4. tier priority (primary > aggregator > scraped > mock) as tie-breaker
 
 Retries the declared fallback chain on retryable failures only.
+
+Config file location precedence:
+  1. FINANCE_ROUTING_CONFIG env
+  2. /opt/data/config/finance.routing.yaml (container mount)
+  3. <repo>/config/finance.routing.yaml
+  4. built-in _DEFAULT_PREFERENCE below
 """
 from __future__ import annotations
 import logging
+import os
+from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from .errors import FinanceError, ErrorCode
@@ -21,11 +30,10 @@ log = logging.getLogger(__name__)
 
 _TIER_RANK = {"primary": 0, "aggregator": 1, "scraped": 2, "mock": 3}
 
-# Preference: (capability, market) → ordered provider names.
-# Providers not registered are silently dropped from the chain.
-# Decisions from Phase A/B: IDX primary for all Indonesian capabilities;
-# Yahoo fallback for quote/history. Yahoo primary for US/GLOBAL/CRYPTO.
-_PREFERENCE: dict[tuple[str, str], list[str]] = {
+# Built-in default preference — used when no YAML config is found.
+# Keep in lockstep with config/finance.routing.yaml so behaviour is
+# identical whether or not the file is present.
+_DEFAULT_PREFERENCE: dict[tuple[str, str], list[str]] = {
     # Indonesian equities.
     ("quote",             "IDX"): ["idx", "yahoo"],
     ("history",           "IDX"): ["idx", "yahoo"],
@@ -84,6 +92,46 @@ _PREFERENCE: dict[tuple[str, str], list[str]] = {
     ("macro:banking_spi",  "MACRO"): ["ojk"],
 }
 
+
+def _candidate_paths() -> list[Path]:
+    out: list[Path] = []
+    env = os.getenv("FINANCE_ROUTING_CONFIG", "").strip()
+    if env:
+        out.append(Path(env))
+    out.append(Path("/opt/data/config/finance.routing.yaml"))
+    # Repo-relative fallback (four levels up from this file).
+    here = Path(__file__).resolve()
+    out.append(here.parent.parent.parent.parent / "config" / "finance.routing.yaml")
+    return out
+
+
+def _load_preference() -> tuple[dict[tuple[str, str], list[str]], str | None]:
+    """Return (preference-map, source-path). Falls back to defaults."""
+    for p in _candidate_paths():
+        try:
+            if not p.exists():
+                continue
+            import yaml  # deferred so tests without pyyaml still import router
+            payload = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        except Exception as e:
+            log.warning("router: failed to load %s: %s — keeping defaults", p, e)
+            return dict(_DEFAULT_PREFERENCE), None
+
+        caps = (payload or {}).get("capabilities") or {}
+        pref: dict[tuple[str, str], list[str]] = {}
+        for cap_name, per_market in caps.items():
+            if not isinstance(per_market, dict):
+                continue
+            for market, chain in per_market.items():
+                if not isinstance(chain, list):
+                    continue
+                pref[(str(cap_name), str(market))] = [str(x) for x in chain]
+        if pref:
+            log.info("router: loaded %d preference entries from %s", len(pref), p)
+            return pref, str(p)
+    return dict(_DEFAULT_PREFERENCE), None
+
+
 # Errors that stop the fallback chain (not transient).
 _STOP_CODES = {
     ErrorCode.SYMBOL_NOT_FOUND,
@@ -93,8 +141,14 @@ _STOP_CODES = {
 
 
 class Router:
-    def __init__(self) -> None:
+    def __init__(self,
+                 preference: dict[tuple[str, str], list[str]] | None = None,
+                 config_source: str | None = None) -> None:
         self._providers: dict[str, Any] = {}
+        if preference is None:
+            preference, config_source = _load_preference()
+        self._preference = preference
+        self.config_source = config_source  # observable for diagnostics
 
     def register(self, provider: Any) -> None:
         if not getattr(provider, "name", None):
@@ -107,10 +161,27 @@ class Router:
     def providers(self) -> list[Any]:
         return list(self._providers.values())
 
+    def preference(self) -> dict[tuple[str, str], list[str]]:
+        return dict(self._preference)
+
+    def validate(self) -> list[str]:
+        """Return warnings: preference entries that reference no registered
+        provider at all. Doesn't fail hard — an operator may deliberately
+        toggle a provider off (FINANCE_IDX=off etc.)."""
+        warnings: list[str] = []
+        for (cap, mkt), chain in self._preference.items():
+            missing = [n for n in chain if n not in self._providers]
+            if missing == chain and chain:
+                warnings.append(
+                    f"routing[{cap!r}][{mkt!r}] references only unregistered "
+                    f"providers {chain} — capability will be unroutable"
+                )
+        return warnings
+
     def chain(self, capability: str, market: str) -> list[Any]:
         """Ordered provider chain for (capability, market). Pure."""
         # 1) Explicit preference table wins.
-        pref = _PREFERENCE.get((capability, market), [])
+        pref = self._preference.get((capability, market), [])
         ordered: list[Any] = []
         seen: set[str] = set()
         for name in pref:

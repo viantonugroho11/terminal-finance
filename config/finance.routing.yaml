@@ -1,0 +1,68 @@
+# Router preference table. Loaded at startup by finance_mcp.router.
+# Format: capability → market → ordered list of provider names.
+# Providers not registered are silently dropped from the chain.
+# Startup validates every referenced provider is either registered
+# or explicitly disabled via FINANCE_<PROVIDER>=off.
+#
+# Change this file to tune provider priority without a code deploy.
+# See ADR-0012.
+
+capabilities:
+  # Indonesian equities. IDX primary; Yahoo fallback where meaningful.
+  quote:
+    IDX: [idx, yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+    CRYPTO: [yahoo]
+  history:
+    IDX: [idx, yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+    CRYPTO: [yahoo]
+  company:
+    IDX: [idx, yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+  financials:
+    IDX: [idx, yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+  statements:
+    IDX: [idx, yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+  news:
+    IDX:    [yahoo]
+    US:     [yahoo]
+    GLOBAL: [yahoo]
+    CRYPTO: [yahoo]
+
+  # IDX-only capabilities. No fallback.
+  dividends:            {IDX: [idx]}
+  corporate_actions:    {IDX: [idx]}
+  sector:               {IDX: [idx]}
+  foreign_flow:         {IDX: [idx]}
+  search:               {IDX: [idx]}
+  broker_activity:      {IDX: [idx]}
+  order_book:           {IDX: [idx]}
+  ipo_calendar:         {IDX: [idx]}
+  trading_calendar:     {IDX: [idx]}
+  disclosures:          {IDX: [idx]}
+  board:                {IDX: [idx]}
+  shareholders:         {IDX: [idx]}
+  subsidiaries:         {IDX: [idx]}
+  idx_market_overview:  {IDX: [idx]}
+  idx_market_movers:    {IDX: [idx]}
+
+  # Untargeted (no symbol).
+  market_overview:      {US: [yahoo]}
+  market_movers:        {US: [yahoo]}
+
+  # Macro. Bucket MACRO (no symbol).
+  "macro:bi_rate":      {MACRO: [bi]}
+  "macro:jisdor":       {MACRO: [bi]}
+  "macro:gdp":          {MACRO: [bps]}
+  "macro:cpi":          {MACRO: [bps]}
+  "macro:inflation":    {MACRO: [bps]}
+  "macro:unemployment": {MACRO: [bps]}
+  "macro:banking_spi":  {MACRO: [ojk]}
