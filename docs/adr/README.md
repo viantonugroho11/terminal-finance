@@ -29,10 +29,10 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0007](0007-finance-hermes-architecture.md) | Finance Hermes overall architecture (target stack) | Proposed |
 | [0008](0008-multi-provider-financial-data.md) | Multi-provider financial data with capability tags | Proposed |
 | [0009](0009-finance-mcp-architecture.md) | Finance MCP shape — gateway + specialized backends | Proposed |
-| [0010](0010-financial-data-normalization.md) | Canonical financial data models + schema versioning | Proposed |
-| [0011](0011-financial-data-provenance.md) | Data provenance, source hierarchy, conflict resolution | Proposed |
-| [0012](0012-intelligent-provider-routing.md) | Capability-based provider router | Proposed |
-| [0013](0013-quantitative-analysis-engine.md) | Quantitative analysis engine (deterministic math) | Proposed |
+| [0010](0010-financial-data-normalization.md) | Canonical financial data models + schema versioning | Accepted |
+| [0011](0011-financial-data-provenance.md) | Data provenance, source hierarchy, conflict resolution | Accepted |
+| [0012](0012-intelligent-provider-routing.md) | Capability-based provider router | Accepted |
+| [0013](0013-quantitative-analysis-engine.md) | Quantitative analysis engine (deterministic math) | Accepted |
 | [0014](0014-advanced-financial-analyst-skills.md) | Advanced financial analyst skill decomposition | Proposed |
 | [0015](0015-multi-agent-financial-research.md) | Multi-agent financial research via Hermes subagents | Proposed |
 | [0016](0016-research-evaluation-and-quality.md) | Research evaluator loop with bounded iterations | Proposed |
@@ -44,8 +44,9 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 
 | # | Title | Status |
 |---|---|---|
-| [0020](0020-indonesian-market-data-providers.md) | Indonesian market data providers (IDX/BEI, BI, BPS, OJK) | Accepted (Phase B: IDX landed) |
+| [0020](0020-indonesian-market-data-providers.md) | Indonesian market data providers (IDX/BEI, BI, BPS, OJK) | Accepted |
 | [0021](0021-market-detection-and-symbol-routing.md) | Market detection and symbol-based routing | Accepted |
+| [0022](0022-idx-microstructure-capabilities.md) | IDX microstructure + market-wide capabilities (12 new tools) | Accepted |
 
 ## Supporting docs
 

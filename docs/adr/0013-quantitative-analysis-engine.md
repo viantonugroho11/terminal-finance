@@ -2,8 +2,15 @@
 
 ## Status
 
-Proposed — Phase 3. Extends `finance_mcp/calc.py` and
-`finance_mcp/technical.py` (Phase 2).
+Accepted as ratified contract (Phase D 2026-08-13). Existing
+`finance_mcp/calc.py` + `finance_mcp/technical.py` shipped in Phase 2
+already satisfy the ADR: all math is deterministic, LLM-free, and
+covered by `tests/test_calc.py` + `tests/test_technical.py`. The ADR
+now serves as the stability contract: any new quantitative function
+must land under `finance_mcp/` (never inside a skill), be pure, be
+tested with a fixed reference vector, and expose only normalized
+inputs/outputs. DCF/valuation additions (ADR-0017) will follow this
+same discipline.
 
 ## Context
 
