@@ -16,45 +16,14 @@ from . import valuation as val
 from .errors import FinanceError, ErrorCode, classify
 from .logging_ import tool_call
 from .models import Provenance, _deep_asdict
-from .providers.mock import MockProvider
-from .providers.yahoo import YahooProvider
-from .providers.idx import IdxProvider
-from .providers.bi import BiProvider
-from .providers.bps import BpsProvider
-from .providers.ojk import OjkProvider
-from .providers.sec import SecProvider
 from .providers import MACRO_INDICATOR_TO_CAP
 from .portfolio import db as pdb, service as psvc, watchlist as pwl
+from .registry import router  # process-wide Router singleton
 from .resolver import resolve as resolve_symbol
 from .retry import with_retry
-from .router import Router
-
-
-def _build_router() -> Router:
-    """Register providers. Overridable via FINANCE_PROVIDER=mock for tests."""
-    r = Router()
-    mode = os.getenv("FINANCE_PROVIDER", "auto").lower()
-    if mode == "mock":
-        r.register(MockProvider())
-        return r
-    r.register(YahooProvider())
-    # IDX enabled by default; disable with FINANCE_IDX=off (e.g. in air-gapped tests).
-    if os.getenv("FINANCE_IDX", "on").lower() != "off":
-        r.register(IdxProvider())
-    # Macro providers — enabled by default; each degrades cleanly on config gap.
-    if os.getenv("FINANCE_BI", "on").lower() != "off":
-        r.register(BiProvider())
-    if os.getenv("FINANCE_BPS", "on").lower() != "off":
-        r.register(BpsProvider())
-    if os.getenv("FINANCE_OJK", "on").lower() != "off":
-        r.register(OjkProvider())
-    if os.getenv("FINANCE_SEC", "on").lower() != "off":
-        r.register(SecProvider())
-    return r
 
 
 mcp = FastMCP("finance-mcp")
-router = _build_router()
 pdb.init()
 
 

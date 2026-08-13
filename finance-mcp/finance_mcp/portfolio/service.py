@@ -1,13 +1,18 @@
-"""Portfolio calc — deterministic. Never ask LLM to sum holdings."""
+"""Portfolio calc — deterministic. Never ask LLM to sum holdings.
+
+Router-driven: IDX tickers (BBCA, BBRI, TLKM, …) automatically price
+via the IDX provider in IDR; US tickers (AAPL, NVDA) via Yahoo in USD.
+Position dataclass carries the quote currency so downstream
+`portfolio_summary` can group by currency instead of naively summing
+mixed-currency market values.
+"""
 from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Iterable
 from . import db
-from ..providers.yahoo import YahooProvider
-
-_market = YahooProvider()
+from ..registry import routed_quote, routed_history, routed_company
 
 
 @dataclass
@@ -21,6 +26,7 @@ class Position:
     unrealized_pl: float | None
     unrealized_pl_pct: float | None
     weight_pct: float | None
+    currency: str = "USD"    # quote currency from the routed provider
 
 
 def ensure_account(name: str, currency: str = "USD", kind: str = "brokerage") -> int:
@@ -78,29 +84,37 @@ async def holdings(account: str | None = None) -> list[Position]:
     raw = _holdings_raw(account)
     if not raw:
         return []
-    quotes = await asyncio.gather(*(_market.quote(s) for s in raw), return_exceptions=True)
-    positions: list[Position] = []
-    total_mv = 0.0
-    tmp: list[tuple[str, dict, float | None]] = []
+    quotes = await asyncio.gather(
+        *(routed_quote(s) for s in raw), return_exceptions=True)
+
+    # First pass: gather price + currency per symbol.
+    tmp: list[tuple[str, dict, float | None, str]] = []
+    # Weight totals are computed per-currency so IDR and USD do not blend.
+    total_mv_by_ccy: dict[str, float] = {}
     for sym, q in zip(raw.keys(), quotes):
-        price = None if isinstance(q, Exception) else q.price
+        if isinstance(q, Exception):
+            price, ccy = None, "USD"
+        else:
+            price, ccy = q.price, (q.currency or "USD")
         mv = (price * raw[sym]["quantity"]) if price is not None else None
         if mv is not None:
-            total_mv += mv
-        tmp.append((sym, raw[sym], price))
+            total_mv_by_ccy[ccy] = total_mv_by_ccy.get(ccy, 0.0) + mv
+        tmp.append((sym, raw[sym], price, ccy))
 
-    for sym, h, price in tmp:
+    positions: list[Position] = []
+    for sym, h, price, ccy in tmp:
         qty = h["quantity"]
         cost = h["cost_basis"]
         avg = cost / qty if qty else 0.0
         mv = (price * qty) if price is not None else None
         upl = (mv - cost) if mv is not None else None
         upl_pct = ((upl / cost) * 100) if (upl is not None and cost) else None
-        weight = ((mv / total_mv) * 100) if (mv is not None and total_mv) else None
+        denom = total_mv_by_ccy.get(ccy, 0.0)
+        weight = ((mv / denom) * 100) if (mv is not None and denom) else None
         positions.append(Position(
             symbol=sym, quantity=qty, avg_cost=avg, cost_basis=cost,
             price=price, market_value=mv, unrealized_pl=upl,
-            unrealized_pl_pct=upl_pct, weight_pct=weight,
+            unrealized_pl_pct=upl_pct, weight_pct=weight, currency=ccy,
         ))
     positions.sort(key=lambda p: (p.market_value or 0), reverse=True)
     return positions
@@ -108,10 +122,20 @@ async def holdings(account: str | None = None) -> list[Position]:
 
 async def summary(account: str | None = None) -> dict:
     pos = await holdings(account)
-    total_mv = sum((p.market_value or 0) for p in pos)
-    total_cost = sum(p.cost_basis for p in pos)
-    upl = total_mv - total_cost if pos else 0.0
-    upl_pct = (upl / total_cost * 100) if total_cost else 0.0
+
+    # Group totals by currency — never blend IDR + USD in one number.
+    by_ccy: dict[str, dict[str, float]] = {}
+    for p in pos:
+        b = by_ccy.setdefault(p.currency, {"positions": 0, "market_value": 0.0,
+                                           "cost_basis": 0.0})
+        b["positions"] += 1
+        b["market_value"] += (p.market_value or 0)
+        b["cost_basis"] += p.cost_basis
+    for b in by_ccy.values():
+        b["unrealized_pl"] = b["market_value"] - b["cost_basis"]
+        b["unrealized_pl_pct"] = (
+            b["unrealized_pl"] / b["cost_basis"] * 100 if b["cost_basis"] else 0.0
+        )
 
     with db.cursor() as cur:
         cur.execute("""SELECT COALESCE(SUM(
@@ -119,6 +143,14 @@ async def summary(account: str | None = None) -> dict:
                  WHEN side='FEE' THEN -fee
                  ELSE 0 END),0) AS realized_income FROM transactions""")
         realized_income = float(cur.fetchone()["realized_income"])
+
+    # Legacy top-level fields retained for back-compat callers; they
+    # naively sum across currencies and are meaningful only when the
+    # portfolio is single-currency. Prefer by_currency for mixed books.
+    total_mv = sum((p.market_value or 0) for p in pos)
+    total_cost = sum(p.cost_basis for p in pos)
+    upl = total_mv - total_cost if pos else 0.0
+    upl_pct = (upl / total_cost * 100) if total_cost else 0.0
 
     return {
         "account": account or "ALL",
@@ -128,6 +160,7 @@ async def summary(account: str | None = None) -> dict:
         "unrealized_pl": upl,
         "unrealized_pl_pct": upl_pct,
         "realized_income": realized_income,
+        "by_currency": by_ccy,
         "holdings": [p.__dict__ for p in pos],
     }
 
@@ -138,7 +171,7 @@ async def allocation(account: str | None = None) -> dict:
     if not pos:
         return {"sectors": {}, "total_market_value": 0}
     companies = await asyncio.gather(
-        *(_market.company(p.symbol) for p in pos), return_exceptions=True)
+        *(routed_company(p.symbol) for p in pos), return_exceptions=True)
     buckets: dict[str, float] = {}
     total = sum((p.market_value or 0) for p in pos)
     for p, c in zip(pos, companies):
@@ -165,7 +198,8 @@ async def risk(account: str | None = None) -> dict:
 
     # Per-position 30d volatility + 6mo drawdown
     hist = await asyncio.gather(
-        *(_market.history(p.symbol, "6mo", "1d") for p in pos), return_exceptions=True)
+        *(routed_history(p.symbol, "6mo", "1d") for p in pos),
+        return_exceptions=True)
     per_sym = []
     for p, h in zip(pos, hist):
         if isinstance(h, Exception) or not h:
