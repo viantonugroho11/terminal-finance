@@ -83,6 +83,18 @@ Market / research (every reply is `{data, provenance: {source, retrieved_at, cac
 | `get_corporate_actions(symbol)` | splits, rights issues, bonus shares, dividends |
 | `get_sector_info(symbol)` | sector / industry (IDX-IC taxonomy for IDX) |
 | `get_macro(indicator)` | Indonesian macro: `bi_rate`, `jisdor` (USD/IDR), `inflation`, `cpi`, `gdp`, `unemployment`, `banking_spi` |
+| `get_foreign_flow(symbol)` | IDX foreign investor net buy/sell per day |
+| `search_stocks(query, limit)` | Search IDX listed companies by name/code |
+| `get_broker_activity(symbol, date?)` | IDX broker buy/sell summary per broker code |
+| `get_order_book(symbol, depth)` | IDX bid/ask depth |
+| `get_ipo_calendar()` | Recent + upcoming IDX new listings |
+| `get_trading_calendar(year)` | IDX trading days + holidays |
+| `get_disclosures(symbol, limit)` | Company disclosures / announcements filed to IDX |
+| `get_board(symbol)` | Board of Commissioners + Directors |
+| `get_shareholders(symbol)` | Major shareholders (name, kind, shares, %) |
+| `get_subsidiaries(symbol)` | Subsidiaries with ownership % + business line |
+| `get_idx_overview()` | IHSG + LQ45 + IDX sector performance |
+| `get_idx_movers()` | IDX top gainers / losers / most active |
 | `resolve_symbol_tool(symbol)` | diagnostics: show how the router will classify a symbol |
 | `get_technical(symbol, period)` | SMA(20/50/200), EMA20, RSI14, MACD, vol, drawdown — **deterministic** |
 | `get_market_overview()` | S&P/NASDAQ/DOW/Russell/VIX + BTC/ETH + GOLD/OIL + DXY |

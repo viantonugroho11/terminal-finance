@@ -36,11 +36,12 @@ Call in parallel:
 1. `finance.get_market_overview()` — S&P/NASDAQ/DOW/Russell/VIX/BTC/ETH/GOLD/OIL/DXY
 2. `finance.get_market_movers()` — top gainers / losers / most active
 3. **Indonesian block** (always include when producing an ID-oriented briefing, or when the user asks in Indonesian):
-   - `finance.get_quote("^JKSE")` — IHSG (Jakarta Composite)
-   - `finance.get_quote("^JKLQ45")` — LQ45 (optional)
+   - `finance.get_idx_overview()` — IHSG + LQ45 + IDX sector performance in one call (IDX-native)
+   - `finance.get_idx_movers()` — IDX top gainers / losers / most active
    - `finance.get_macro("bi_rate")` — latest BI-Rate observation
    - `finance.get_macro("jisdor")` — latest USD/IDR reference rate
    - `finance.get_macro("inflation")` — latest headline inflation
+   - Fallback if `get_idx_overview` errors: `finance.get_quote("^JKSE")` via Yahoo.
 4. `finance.search_news("stock market", limit=5)` — top headlines
 
 Every reply carries `{data, provenance}`. If a bucket is empty or a tool

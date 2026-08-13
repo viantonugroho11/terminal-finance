@@ -43,6 +43,16 @@ For IDX symbols (resolver.market == "IDX"), also call in parallel:
 - `finance.get_dividends(<SYM>)` — dividend history from IDX.
 - `finance.get_corporate_actions(<SYM>)` — splits, rights issues, bonus shares.
 - `finance.get_sector_info(<SYM>)` — IDX-IC sector taxonomy.
+- `finance.get_foreign_flow(<SYM>)` — net foreign buy/sell (asing) per day.
+- `finance.get_disclosures(<SYM>, limit=10)` — company disclosures / announcements.
+- `finance.get_shareholders(<SYM>)` — major shareholders.
+
+On demand (only when the user asks for that specific slice):
+- `finance.get_broker_activity(<SYM>)` — akumulasi/distribusi per broker code.
+- `finance.get_order_book(<SYM>)` — depth / bid-ask.
+- `finance.get_board(<SYM>)` — komisaris + direksi.
+- `finance.get_subsidiaries(<SYM>)` — anak perusahaan.
+- `finance.search_stocks(<query>)` — resolve nama perusahaan → ticker.
 
 For **Indonesian banks** (BBCA, BBRI, BMRI, BBNI, BRIS, BJBR, BTPS, BNGA, NISP, PNBN, MEGA, …) the `get_fundamentals` reply includes bank-specific ratios when the provider supplies them: `net_interest_margin` (NIM), `non_performing_loan_ratio` (NPL), `capital_adequacy_ratio` (CAR), `loan_to_deposit_ratio` (LDR), `casa_ratio`, `cost_of_credit`, `loan_growth`, `deposit_growth`. Surface these in a `BANKING METRICS` block instead of the generic FUNDAMENTALS block; report only the ones the tool returned (never fabricate).
 
