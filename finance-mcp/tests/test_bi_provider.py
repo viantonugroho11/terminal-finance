@@ -17,34 +17,52 @@ def _client(handler):
 def _run(coro): return asyncio.run(coro)
 
 
+_BI_RATE_HTML = """
+<table>
+  <tr><th>Tanggal</th><th>BI-Rate</th></tr>
+  <tr><td>22 Juli 2026</td><td>5,75%</td></tr>
+  <tr><td>18 Juni 2026</td><td>6,00%</td></tr>
+  <tr><td>21 Mei 2026</td><td>6,00%</td></tr>
+</table>
+"""
+
+_JISDOR_HTML = """
+<table>
+  <tr><th>Tanggal</th><th>Kurs</th></tr>
+  <tr><td>13 Agustus 2026</td><td>17.882,00</td></tr>
+  <tr><td>12 Agustus 2026</td><td>17.875,50</td></tr>
+</table>
+"""
+
+
 def test_bi_rate_parses():
     def handler(req):
-        assert "getBIRateHistory" in req.url.path
-        return httpx.Response(200, json={"data": [
-            {"EffectiveDate": "2025-08-15", "Rate": "6.00"},
-            {"EffectiveDate": "2025-07-15", "Rate": "6.25"},
-        ]})
+        assert "bi-rate" in req.url.path
+        return httpx.Response(200, text=_BI_RATE_HTML,
+                              headers={"Content-Type": "text/html"})
     p = BiProvider(http=_client(handler))
     s = _run(p.macro_indicator("bi_rate"))
     assert s.indicator == "bi_rate"
     assert s.source == "bi"
     assert s.unit == "%"
-    assert len(s.observations) == 2
-    assert s.observations[0].value == 6.00
+    assert len(s.observations) == 3
+    # Sorted ascending.
+    assert s.observations[-1].period == "2026-07-22"
+    assert s.observations[-1].value == 5.75
     assert s.attribution == "Bank Indonesia"
 
 
 def test_jisdor_parses_and_supports_alias():
     def handler(req):
-        assert "getJisdorHistory" in req.url.path
-        return httpx.Response(200, json={"data": [
-            {"Date": "2025-08-13", "Kurs": "16123.50"},
-        ]})
+        assert "jisdor" in req.url.path
+        return httpx.Response(200, text=_JISDOR_HTML,
+                              headers={"Content-Type": "text/html"})
     p = BiProvider(http=_client(handler))
     s1 = _run(p.macro_indicator("jisdor"))
-    assert s1.observations[0].value == 16123.50
+    assert s1.observations[-1].value == 17882.00
+    assert s1.observations[-1].period == "2026-08-13"
     s2 = _run(p.macro_indicator("fx_usd_idr"))
-    assert s2.indicator == "jisdor"  # alias normalized
+    assert s2.indicator == "jisdor"
 
 
 def test_unknown_indicator_raises_data_unavailable():
@@ -60,6 +78,16 @@ def test_bi_403_maps_provider_unavailable():
     with pytest.raises(FinanceError) as ei:
         _run(p.macro_indicator("bi_rate"))
     assert ei.value.code == ErrorCode.PROVIDER_UNAVAILABLE
+
+
+def test_unparseable_html_raises_data_unavailable():
+    def handler(req):
+        return httpx.Response(200, text="<html>no table here</html>",
+                              headers={"Content-Type": "text/html"})
+    p = BiProvider(http=_client(handler))
+    with pytest.raises(FinanceError) as ei:
+        _run(p.macro_indicator("bi_rate"))
+    assert ei.value.code == ErrorCode.DATA_UNAVAILABLE
 
 
 def test_bi_provider_declarations():
