@@ -39,6 +39,8 @@ mcp_servers:
         - get_idx_movers
         - valuation_dcf
         - valuation_sensitivity
+        - valuation_implied_growth
+        - evaluate_report
         - get_sec_filings
         - get_sec_facts
         - get_technical

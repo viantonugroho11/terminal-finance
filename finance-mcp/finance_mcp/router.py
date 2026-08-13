@@ -253,3 +253,47 @@ class Router:
 
         assert last is not None
         raise last
+
+    async def call_all(
+        self,
+        capability: str,
+        *,
+        symbol: str | None = None,
+        market: str | None = None,
+        fetch: Callable[[Any], Awaitable[Any]],
+    ) -> tuple[list[tuple[Any, Any]], MarketContext | None]:
+        """Fan out to every provider in the chain concurrently.
+
+        Returns ([(value, provider), ...], market_context). Silently drops
+        providers that error (this is for explicit cross-verification —
+        the router-level `call` still handles single-source with fallback).
+        Used when a skill needs multi-source conflict resolution per
+        ADR-0011.
+        """
+        import asyncio
+        ctx: MarketContext | None = None
+        if symbol is not None:
+            ctx = resolve(symbol)
+            mkt = market or ctx.market
+        elif market is not None:
+            mkt = market
+        else:
+            mkt = "US"
+
+        chain = self.chain(capability, mkt)
+        if not chain:
+            raise FinanceError(
+                ErrorCode.DATA_UNAVAILABLE,
+                f"No provider satisfies capability={capability} market={mkt}",
+                provider="router", symbol=symbol,
+            )
+
+        async def _one(p):
+            try:
+                return (await fetch(p), p)
+            except FinanceError as e:
+                log.info("router.call_all: %s dropped: %s", p.name, e)
+                return None
+
+        results = await asyncio.gather(*(_one(p) for p in chain))
+        return [r for r in results if r is not None], ctx

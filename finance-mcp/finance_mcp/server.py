@@ -548,6 +548,78 @@ async def get_macro(indicator: str) -> dict:
 
 
 @mcp.tool()
+async def valuation_implied_growth(
+    symbol: str,
+    current_price_per_share: float,
+    base_fcf_per_share: float,
+    projection_years: int = 5,
+    discount_rate: float = 0.10,
+    terminal_growth: float = 0.03,
+) -> dict:
+    """Reverse-DCF: growth rate that makes DCF per-share == current price.
+
+    Returns None (with an explanation) if the price can't be explained
+    inside the [-20%, +60%] growth band.
+    """
+    g = val.implied_growth(
+        current_price=current_price_per_share,
+        base_fcf_per_share=base_fcf_per_share,
+        years=projection_years,
+        discount_rate=discount_rate,
+        terminal_growth=terminal_growth,
+    )
+    if g is None:
+        return {"data": {
+            "symbol": symbol.upper(),
+            "implied_growth": None,
+            "note": ("price lies outside the [-0.20, +0.60] growth band; "
+                     "check the fcf-per-share input or adjust discount_rate"),
+            "inputs": {
+                "current_price_per_share": current_price_per_share,
+                "base_fcf_per_share": base_fcf_per_share,
+                "projection_years": projection_years,
+                "discount_rate": discount_rate,
+                "terminal_growth": terminal_growth,
+            },
+        }, "provenance": {"source": "finance_mcp.valuation",
+                          "schema_version": "1.2.0",
+                          "tier": "primary",
+                          "retrieved_at": "deterministic",
+                          "cache_hit": False}}
+    return {"data": {
+        "symbol": symbol.upper(),
+        "implied_growth": g,
+        "inputs": {
+            "current_price_per_share": current_price_per_share,
+            "base_fcf_per_share": base_fcf_per_share,
+            "projection_years": projection_years,
+            "discount_rate": discount_rate,
+            "terminal_growth": terminal_growth,
+        },
+    }, "provenance": {"source": "finance_mcp.valuation",
+                      "schema_version": "1.2.0",
+                      "tier": "primary",
+                      "retrieved_at": "deterministic",
+                      "cache_hit": False}}
+
+
+@mcp.tool()
+async def evaluate_report(markdown: str, expected_symbol: str | None = None) -> dict:
+    """Score a research report (ADR-0019 format) against ADR-0016 rubric.
+
+    Verdict ∈ {'accept', 'retry', 'low_confidence'}. Deterministic —
+    no LLM, no tool call. Skills call this before publishing.
+    """
+    from .evaluator import evaluate
+    return {"data": evaluate(markdown, expected_symbol=expected_symbol).to_dict(),
+            "provenance": {"source": "finance_mcp.evaluator",
+                           "schema_version": "1.2.0",
+                           "tier": "primary",
+                           "retrieved_at": "deterministic",
+                           "cache_hit": False}}
+
+
+@mcp.tool()
 async def resolve_symbol_tool(symbol: str) -> dict:
     """Show how the resolver would classify a symbol. Diagnostics."""
     return {"symbol": symbol, "resolved": resolve_symbol(symbol).to_dict()}
