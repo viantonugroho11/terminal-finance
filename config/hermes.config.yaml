@@ -2,6 +2,20 @@
 # Copy to ~/.hermes/config.yaml (or mount as /opt/data/config.yaml in the hermes container).
 # Full reference: https://hermes-agent.nousresearch.com/docs/reference/mcp-config-reference
 
+# ── LLM ─────────────────────────────────────────────────────────────
+# Current: DeepSeek (OpenAI-compatible). Configurable — to swap:
+#   1. Change `default` (model name) + `base_url` below
+#   2. Set matching api key in .env (compose aliases DEEPSEEK_API_KEY → OPENAI_API_KEY)
+# Examples:
+#   OpenRouter: default=openai/gpt-4o, base_url=https://openrouter.ai/api/v1, key=OPENROUTER_API_KEY→OPENAI_API_KEY
+#   Anthropic:  provider=anthropic, default=claude-3-5-sonnet-latest, key=ANTHROPIC_API_KEY
+model:
+  default: deepseek-chat
+  provider: custom
+  base_url: https://api.deepseek.com/v1
+  temperature: 0.3
+  top_p: 0.9
+
 mcp_servers:
   finance:
     # Streamable-HTTP MCP transport. In compose, hermes reaches finance-mcp
@@ -59,10 +73,6 @@ mcp_servers:
         - watchlist_remove
         - watchlist_list
         - watchlist_quotes
-        - telegram_get_me
-        - telegram_send_message
-        - telegram_send_alert
-        - telegram_get_updates
       resources: false
 
 # Skills live at /opt/data/skills — mounted from ../finance-skills in compose.

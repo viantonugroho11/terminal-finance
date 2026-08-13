@@ -26,10 +26,6 @@ services:
       FINANCE_OJK_SPI_PATH: ${FINANCE_OJK_SPI_PATH:-}
       # Router config path (defaults to bundled YAML).
       FINANCE_ROUTING_CONFIG: /opt/data/config/finance.routing.yaml
-      # Telegram gateway (optional — enables telegram_* MCP tools).
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS:-}
-      TELEGRAM_ALERT_CHAT_ID: ${TELEGRAM_ALERT_CHAT_ID:-}
     networks:
       - hermes-net
     healthcheck:
@@ -47,11 +43,19 @@ services:
     volumes:
       - ${HERMES_DATA:-~/.hermes}:/opt/data
       - ../finance-skills:/opt/data/skills:ro
+      - ../config/hermes.config.yaml:/opt/data/config.yaml:ro
     ports:
       - "8642:8642"   # OpenAI-compatible API
       - "9119:9119"   # Dashboard
     environment:
       HERMES_DASHBOARD: "1"
+      # Hermes `provider: custom` reads OPENAI_API_KEY. For DeepSeek default
+      # we alias DEEPSEEK_API_KEY into it. To swap provider: set the matching
+      # env below and edit config/hermes.config.yaml (base_url + default).
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-${DEEPSEEK_API_KEY:-}}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       # Native Telegram gateway — Hermes handles chat + routes to MCP tools.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_ALLOWED_USERS: ${TELEGRAM_ALLOWED_USERS:-}
