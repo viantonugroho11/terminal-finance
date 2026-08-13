@@ -2,7 +2,14 @@
 
 ## Status
 
-Proposed — Phase 3. Extends ADR-0002.
+Accepted (Phase D landed 2026-08-13). Schema version constant lives at
+`finance_mcp/schema.py::SCHEMA_VERSION` (currently `1.2.0`) and is
+emitted on every provenance envelope. Extends ADR-0002.
+
+Bump rule:
+- MAJOR: field removed, renamed, or type changed on any dataclass.
+- MINOR: new required field on an existing dataclass.
+- PATCH: new optional field or new dataclass, no removal.
 
 ## Context
 

@@ -378,24 +378,44 @@ class MarketMovers:
 
 @dataclass
 class Provenance:
-    """Wrap every tool result so Hermes surfaces source + fetch time to the user."""
+    """Wrap every tool result so Hermes surfaces source + fetch time to the user.
+
+    Envelope shape (see ADR-0004, ADR-0010, ADR-0011):
+      {
+        "data": <normalized payload>,
+        "provenance": {
+          "source":        provider name (e.g. "idx", "yahoo", "bi"),
+          "tier":          "primary" | "aggregator" | "scraped" | "mock",
+          "schema_version": SCHEMA_VERSION,
+          "retrieved_at":  ISO-8601 UTC,
+          "cache_hit":     bool,
+          "symbol":        optional canonical/raw symbol,
+          "resolver":      optional MarketContext dict,
+          "attribution":   optional human-readable source credit
+        }
+      }
+    """
     data: Any
     source: str                                                # provider name
+    tier: str | None = None                                    # provider tier — ADR-0011
     retrieved_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     cache_hit: bool = False
     symbol: str | None = None
     resolver: dict[str, Any] | None = None                     # MarketContext.to_dict()
-    attribution: str | None = None                             # e.g. "Data © IDX" for scraped sources
+    attribution: str | None = None                             # e.g. "Bank Indonesia"
 
     def to_dict(self) -> dict[str, Any]:
-        # Always deep-convert: handles dataclasses, nested dataclasses inside
-        # lists/dicts, and passes primitives through unchanged.
+        # Deferred import to avoid a cycle if schema.py ever grows deps.
+        from .schema import SCHEMA_VERSION
         payload = _deep_asdict(self.data)
         prov: dict[str, Any] = {
             "source": self.source,
+            "schema_version": SCHEMA_VERSION,
             "retrieved_at": self.retrieved_at,
             "cache_hit": self.cache_hit,
         }
+        if self.tier:
+            prov["tier"] = self.tier
         if self.symbol:
             prov["symbol"] = self.symbol
         if self.resolver:

@@ -100,12 +100,12 @@ async def _do(
 
             hit = _c.cache.get(cache_key)
             if hit is not None:
-                value, prov_name, mctx_dict = hit
+                value, prov_name, prov_tier, prov_attr, mctx_dict = hit
                 ctx["hit"]()
                 return Provenance(
-                    data=value, source=prov_name,
+                    data=value, source=prov_name, tier=prov_tier,
                     cache_hit=True, symbol=symbol,
-                    resolver=mctx_dict,
+                    resolver=mctx_dict, attribution=prov_attr,
                 ).to_dict()
 
             async def _routed():
@@ -119,11 +119,15 @@ async def _do(
 
             value, chosen, mctx = await _routed()
             mctx_dict = mctx.to_dict() if mctx else None
-            _c.cache.set(cache_key, (value, chosen.name, mctx_dict), ttl)
+            chosen_tier = getattr(chosen, "tier", None)
+            chosen_attr = getattr(chosen, "attribution", None)
+            _c.cache.set(cache_key,
+                         (value, chosen.name, chosen_tier, chosen_attr, mctx_dict),
+                         ttl)
             return Provenance(
-                data=value, source=chosen.name,
+                data=value, source=chosen.name, tier=chosen_tier,
                 cache_hit=False, symbol=symbol,
-                resolver=mctx_dict,
+                resolver=mctx_dict, attribution=chosen_attr,
             ).to_dict()
         except FinanceError as e:
             ctx["error"](e.code.value)
@@ -254,9 +258,13 @@ async def search_news(query: str, limit: int = 10) -> dict:
 
 @mcp.tool()
 async def cache_stats() -> dict:
-    """Cache hits/misses/size + registered providers — diagnostics only."""
+    """Cache hits/misses/size + registered providers + routing source — diagnostics only."""
+    from .schema import SCHEMA_VERSION
     return {
         "provider": _primary_name(),
+        "schema_version": SCHEMA_VERSION,
+        "routing_config": router.config_source or "built-in defaults",
+        "routing_warnings": router.validate(),
         "providers": [
             {"name": p.name, "tier": getattr(p, "tier", "?"),
              "markets": sorted(getattr(p, "markets", []))}
