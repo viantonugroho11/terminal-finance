@@ -196,7 +196,9 @@ No secrets are committed. API keys (when a provider needs them) must come from e
 
 Recorded in [`docs/adr/`](docs/adr/README.md).
 
-**Phase 1–2 (Accepted, in production):**
+Status vocabulary: **Accepted** (shipped) · **Bridged** (partial in-process; external runtime pending) · **Proposed** (design only).
+
+**Phase 1–2 baseline (Accepted):**
 
 - ADR-0001 — HTTP MCP transport over stdio
 - ADR-0002 — Provider Protocol abstraction
@@ -205,28 +207,31 @@ Recorded in [`docs/adr/`](docs/adr/README.md).
 - ADR-0005 — Structured FinanceError with stable codes
 - ADR-0006 — FastMCP shim for offline / Python 3.9 tests
 
-**Phase 3 (Proposed — architectural gate before implementation):**
+**Phase 3 architecture (all Accepted):**
 
-- ADR-0007 — Finance Hermes overall architecture (target stack)
-- ADR-0008 — Multi-provider financial data with capability tags
-- ADR-0009 — Finance MCP shape — gateway + specialized backends
-- ADR-0010 — Canonical financial data models + schema versioning
-- ADR-0011 — Data provenance, source hierarchy, conflict resolution
-- ADR-0012 — Capability-based provider router
-- ADR-0013 — Quantitative analysis engine (deterministic math)
-- ADR-0014 — Advanced financial analyst skill decomposition
-- ADR-0015 — Multi-agent financial research via Hermes subagents
-- ADR-0016 — Research evaluator loop with bounded iterations
-- ADR-0017 — DCF and valuation engine (deterministic)
-- ADR-0018 — SEC EDGAR and primary-source integration
-- ADR-0019 — Deep-research report format and rendering
+- ADR-0007 — Finance Hermes overall architecture (target stack) — **Accepted**
+- ADR-0008 — Multi-provider financial data with capability tags — **Accepted**
+- ADR-0009 — Finance MCP shape — gateway + specialized backends — **Accepted**
+- ADR-0010 — Canonical financial data models + schema versioning — **Accepted** (`schema.py::SCHEMA_VERSION=1.2.0`)
+- ADR-0011 — Data provenance, source hierarchy, conflict resolution — **Accepted** (`tier` in envelope, `Router.call_all` for cross-verification)
+- ADR-0012 — Capability-based provider router — **Accepted** (YAML config + `validate()`)
+- ADR-0013 — Quantitative analysis engine (deterministic math) — **Accepted** (ratified contract)
+- ADR-0014 — Advanced financial analyst skill decomposition — **Accepted** (single-context; 6 specialists + `equity-research` coordinator)
+- ADR-0015 — Multi-agent financial research via Hermes subagents — **Bridged** (in-process `SubagentRuntime` shim shipped; native Hermes subagent spawn pending external runtime)
+- ADR-0016 — Research evaluator loop with bounded iterations — **Accepted** (deterministic rubric scorer; LLM-adjudicated retry loop pending 0015 native tier)
+- ADR-0017 — DCF and valuation engine (deterministic) — **Accepted**
+- ADR-0018 — SEC EDGAR and primary-source integration — **Accepted**
+- ADR-0019 — Deep-research report format and rendering — **Accepted** (template at `docs/report-format-template.md`)
 
-**Indonesia extension (Accepted, in production):**
+**Indonesia extension (Accepted):**
 
 - ADR-0020 — Indonesian market data providers (IDX/BEI, BI, BPS, OJK)
 - ADR-0021 — Market detection and symbol-based routing
+- ADR-0022 — IDX microstructure + market-wide capabilities (12 new tools)
 
-Supporting: [decision matrix](docs/adr/phase-3-decision-matrix.md) · [reference analysis](docs/adr/phase-3-reference-analysis.md) · [implementation sequence](docs/adr/phase-3-implementation-sequence.md) · [Phase A findings](docs/adr/phase-a-indonesia-findings.md).
+Supporting: [decision matrix](docs/adr/phase-3-decision-matrix.md) · [reference analysis](docs/adr/phase-3-reference-analysis.md) · [implementation sequence](docs/adr/phase-3-implementation-sequence.md) · [Phase A findings](docs/adr/phase-a-indonesia-findings.md) · [Phase F multi-agent plan](docs/adr/phase-f-multi-agent-plan.md).
+
+Roll-up: **22 of 23 Accepted · 1 Bridged · 0 Proposed.** The two external-blocked pieces (0015 native runtime + 0016 LLM loop) both wait on Hermes-side subagent API; every in-repo piece is shipped.
 
 ## Error codes
 
