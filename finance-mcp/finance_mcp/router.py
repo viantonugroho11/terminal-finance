@@ -60,6 +60,20 @@ _PREFERENCE: dict[tuple[str, str], list[str]] = {
     ("market_overview",   "US"):     ["yahoo"],
     ("market_movers",     "US"):     ["yahoo"],
 
+    # IDX-specific microstructure + market-wide.
+    ("foreign_flow",         "IDX"):   ["idx"],
+    ("search",               "IDX"):   ["idx"],
+    ("broker_activity",      "IDX"):   ["idx"],
+    ("order_book",           "IDX"):   ["idx"],
+    ("ipo_calendar",         "IDX"):   ["idx"],
+    ("trading_calendar",     "IDX"):   ["idx"],
+    ("disclosures",          "IDX"):   ["idx"],
+    ("board",                "IDX"):   ["idx"],
+    ("shareholders",         "IDX"):   ["idx"],
+    ("subsidiaries",         "IDX"):   ["idx"],
+    ("idx_market_overview",  "IDX"):   ["idx"],
+    ("idx_market_movers",    "IDX"):   ["idx"],
+
     # Macro — Indonesia. Bucket "MACRO" (no symbol).
     ("macro:bi_rate",      "MACRO"): ["bi"],
     ("macro:jisdor",       "MACRO"): ["bi"],

@@ -25,6 +25,18 @@ mcp_servers:
         - get_corporate_actions
         - get_sector_info
         - get_macro
+        - get_foreign_flow
+        - search_stocks
+        - get_broker_activity
+        - get_order_book
+        - get_ipo_calendar
+        - get_trading_calendar
+        - get_disclosures
+        - get_board
+        - get_shareholders
+        - get_subsidiaries
+        - get_idx_overview
+        - get_idx_movers
         - get_technical
         - get_market_overview
         - get_market_movers

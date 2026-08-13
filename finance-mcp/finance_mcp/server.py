@@ -267,6 +267,102 @@ async def cache_stats() -> dict:
 
 
 @mcp.tool()
+async def get_foreign_flow(symbol: str) -> dict:
+    """IDX foreign investor net flow per day (last ~30 days)."""
+    return await _do("get_foreign_flow", "foreign_flow",
+                     (symbol.upper(),), _c.TTL_FOREIGN_FLOW,
+                     lambda p: p.foreign_flow(symbol), symbol=symbol)
+
+
+@mcp.tool()
+async def search_stocks(query: str, limit: int = 20) -> dict:
+    """Search IDX listed companies by name or code fragment."""
+    return await _do("search_stocks", "search",
+                     (query.upper(), limit), _c.TTL_SEARCH,
+                     lambda p: p.search(query, limit), market="IDX")
+
+
+@mcp.tool()
+async def get_broker_activity(symbol: str, date: str | None = None) -> dict:
+    """Broker buy/sell summary for an IDX symbol (per broker code)."""
+    return await _do("get_broker_activity", "broker_activity",
+                     (symbol.upper(), date or "latest"), _c.TTL_BROKER,
+                     lambda p: p.broker_activity(symbol, date), symbol=symbol)
+
+
+@mcp.tool()
+async def get_order_book(symbol: str, depth: int = 10) -> dict:
+    """Current bid/ask depth for an IDX symbol."""
+    return await _do("get_order_book", "order_book",
+                     (symbol.upper(), depth), _c.TTL_ORDER_BOOK,
+                     lambda p: p.order_book(symbol, depth), symbol=symbol)
+
+
+@mcp.tool()
+async def get_ipo_calendar() -> dict:
+    """Recent + upcoming IDX new listings (IPOs)."""
+    return await _do("get_ipo_calendar", "ipo_calendar",
+                     (), _c.TTL_IPO,
+                     lambda p: p.ipo_calendar(), market="IDX")
+
+
+@mcp.tool()
+async def get_trading_calendar(year: int) -> dict:
+    """IDX trading calendar for a given year (holidays + trading days)."""
+    return await _do("get_trading_calendar", "trading_calendar",
+                     (year,), _c.TTL_CALENDAR,
+                     lambda p: p.trading_calendar(year), market="IDX")
+
+
+@mcp.tool()
+async def get_disclosures(symbol: str, limit: int = 20) -> dict:
+    """Company disclosures / announcements filed to IDX."""
+    return await _do("get_disclosures", "disclosures",
+                     (symbol.upper(), limit), _c.TTL_DISCLOSURES,
+                     lambda p: p.disclosures(symbol, limit), symbol=symbol)
+
+
+@mcp.tool()
+async def get_board(symbol: str) -> dict:
+    """Board of Commissioners + Board of Directors for an IDX company."""
+    return await _do("get_board", "board",
+                     (symbol.upper(),), _c.TTL_BOARD,
+                     lambda p: p.board(symbol), symbol=symbol)
+
+
+@mcp.tool()
+async def get_shareholders(symbol: str) -> dict:
+    """Major shareholders (name, kind, shares, %)."""
+    return await _do("get_shareholders", "shareholders",
+                     (symbol.upper(),), _c.TTL_SHAREHOLDERS,
+                     lambda p: p.shareholders(symbol), symbol=symbol)
+
+
+@mcp.tool()
+async def get_subsidiaries(symbol: str) -> dict:
+    """Company subsidiaries with ownership % and business line."""
+    return await _do("get_subsidiaries", "subsidiaries",
+                     (symbol.upper(),), _c.TTL_SUBSIDIARIES,
+                     lambda p: p.subsidiaries(symbol), symbol=symbol)
+
+
+@mcp.tool()
+async def get_idx_overview() -> dict:
+    """IDX indices (IHSG, LQ45, …) + sector performance."""
+    return await _do("get_idx_overview", "idx_market_overview",
+                     (), _c.TTL_IDX_OVERVIEW,
+                     lambda p: p.idx_market_overview(), market="IDX")
+
+
+@mcp.tool()
+async def get_idx_movers() -> dict:
+    """IDX top gainers / losers / most active."""
+    return await _do("get_idx_movers", "idx_market_movers",
+                     (), _c.TTL_IDX_MOVERS,
+                     lambda p: p.idx_market_movers(), market="IDX")
+
+
+@mcp.tool()
 async def get_macro(indicator: str) -> dict:
     """Indonesian macro indicator. Names: bi_rate, jisdor (USD/IDR), inflation, cpi, gdp, unemployment, banking_spi (NPL/CAR via OJK)."""
     ind = indicator.strip().lower()
