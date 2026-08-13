@@ -2,7 +2,28 @@
 
 ## Status
 
-Proposed — Phase 3.
+Bridged (Phase F Step 2.5, 2026-08-13). Hermes' native subagent
+runtime is still external, but a minimal in-process fan-out shim
+lands at `finance_mcp/subagents.py` so the `equity-research`
+coordinator can describe its plan in terms of parallel specialist
+tasks *today* — and the swap to real subagents becomes a runner
+change, not a rewrite.
+
+`SubagentRuntime.fan_out([SubagentTask(name, fn, timeout_seconds)])`
+runs callables concurrently under a bounded semaphore, captures
+per-task success / error / elapsed, and returns a `FanOutReport`.
+Failures do not kill the batch. Timeouts are enforced per task.
+
+The shim uses `asyncio.gather` — no cross-process spawn, no message
+queue. Real Hermes subagents will replace `_run_one` with
+`hermes.spawn_subagent(...)` and its per-agent tool whitelist +
+message envelope. The `SubagentTask`/`SubagentResult`/`FanOutReport`
+contract stays.
+
+LLM-driven multi-agent research (real sub-agents making tool calls +
+returning natural-language findings) remains **Proposed** until
+Hermes ships the runtime. Plan in
+`docs/adr/phase-f-multi-agent-plan.md`.
 
 ## Context
 
