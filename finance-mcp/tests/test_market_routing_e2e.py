@@ -51,20 +51,20 @@ def test_idx_suffix_symbol_also_routes():
 
 def test_new_dividends_tool_returns_events():
     d, prov = _payload(_run(server.get_dividends("BBCA")))
-    assert d["symbol"] == "BBCA"
+    assert d["symbol"] in ("BBCA", "BBCA.JK")   # canonical after resolver
     assert isinstance(d["events"], list) and d["events"]
     assert prov["resolver"]["market"] == "IDX"
 
 
 def test_new_corporate_actions_tool():
     d, _ = _payload(_run(server.get_corporate_actions("BBRI")))
-    assert d["symbol"] == "BBRI"
+    assert d["symbol"] in ("BBRI", "BBRI.JK")
     assert d["events"][0]["kind"] == "split"
 
 
 def test_new_sector_info_tool():
     d, _ = _payload(_run(server.get_sector_info("BMRI")))
-    assert d["symbol"] == "BMRI"
+    assert d["symbol"] in ("BMRI", "BMRI.JK")
     assert d["sector_name"] == "Technology"  # mock returns generic sector
 
 

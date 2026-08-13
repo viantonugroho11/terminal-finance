@@ -20,7 +20,7 @@ def _ok(r):
 
 def test_get_foreign_flow():
     d = _ok(_run(server.get_foreign_flow("BBCA")))
-    assert d["symbol"] == "BBCA"
+    assert d["symbol"] in ("BBCA", "BBCA.JK")
     assert isinstance(d["days"], list) and d["days"]
 
 
@@ -32,13 +32,13 @@ def test_search_stocks():
 
 def test_get_broker_activity():
     d = _ok(_run(server.get_broker_activity("BBCA")))
-    assert d["symbol"] == "BBCA"
+    assert d["symbol"] in ("BBCA", "BBCA.JK")
     assert len(d["rows"]) == 2
 
 
 def test_get_order_book():
     d = _ok(_run(server.get_order_book("BBCA", 5)))
-    assert d["symbol"] == "BBCA"
+    assert d["symbol"] in ("BBCA", "BBCA.JK")
     assert d["bids"] and d["asks"]
 
 

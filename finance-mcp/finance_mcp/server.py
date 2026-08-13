@@ -43,7 +43,8 @@ class _ProviderProxy:
 
     async def quote(self, symbol: str):
         # Preserve the pre-router behavior used by `watchlist_quotes`.
-        async def _fetch(p): return await p.quote(symbol)
+        canonical = resolve_symbol(symbol).canonical_symbol or symbol
+        async def _fetch(p): return await p.quote(canonical)
         value, _, _ = await router.call("quote", symbol=symbol, fetch=_fetch)
         return value
 
@@ -56,17 +57,27 @@ async def _do(
     capability: str,
     key_extra: tuple,
     ttl: int,
-    fetch: Callable[[Any], Awaitable[Any]],
+    fetch: Callable[..., Awaitable[Any]],
     *,
     symbol: str | None = None,
     market: str | None = None,
 ) -> dict:
-    """Router-driven: resolve symbol, pick provider, cache, retry, wrap."""
+    """Router-driven: resolve symbol, pick provider, cache, retry, wrap.
+
+    `fetch` may take one arg `(provider)` (legacy — for symbol-less tools)
+    or two `(provider, canonical_symbol)`. When a symbol is given, the
+    resolver's `canonical_symbol` is passed so Yahoo receives `BBCA.JK`
+    for the raw `BBCA` fallback instead of the wrong US OTC listing.
+    """
     with tool_call(tool, symbol=symbol, provider="router") as ctx:
         try:
             ctx_key_market = market
-            if symbol is not None and ctx_key_market is None:
-                ctx_key_market = resolve_symbol(symbol).market
+            canonical = symbol
+            if symbol is not None:
+                mctx = resolve_symbol(symbol)
+                canonical = mctx.canonical_symbol or symbol
+                if ctx_key_market is None:
+                    ctx_key_market = mctx.market
             # Cache key includes market so cross-market symbol collisions
             # (rare, but possible) never bleed.
             cache_key = (tool, ctx_key_market or "-", *key_extra)
@@ -81,8 +92,17 @@ async def _do(
                     resolver=mctx_dict, attribution=prov_attr,
                 ).to_dict()
 
+            # Adapt fetch signature: pass canonical when it's a 2-arg fn.
+            import inspect
+            sig = inspect.signature(fetch)
+            nparams = len(sig.parameters)
+
             async def _routed():
                 async def _one(provider):
+                    if nparams >= 2 and canonical is not None:
+                        return await with_retry(
+                            lambda: fetch(provider, canonical),
+                            provider=provider.name, symbol=symbol)
                     return await with_retry(lambda: fetch(provider),
                                             provider=provider.name,
                                             symbol=symbol)
@@ -117,7 +137,7 @@ async def _do(
 async def get_quote(symbol: str) -> dict:
     """Real-time quote. Auto-detects market (US/IDX/crypto) — no suffix needed for known IDX tickers."""
     return await _do("get_quote", "quote", (symbol.upper(),), _c.TTL_QUOTE,
-                     lambda p: p.quote(symbol), symbol=symbol)
+                     lambda p, s: p.quote(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -125,7 +145,7 @@ async def get_historical_prices(symbol: str, period: str = "6mo", interval: str 
     """OHLCV history. period: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max. interval: 1d,1wk,1mo."""
     return await _do("get_historical_prices", "history",
                      (symbol.upper(), period, interval), _c.TTL_HISTORY,
-                     lambda p: p.history(symbol, period, interval), symbol=symbol)
+                     lambda p, s: p.history(s, period, interval), symbol=symbol)
 
 
 @mcp.tool()
@@ -139,7 +159,7 @@ async def get_company_profile(symbol: str) -> dict:
     """Company profile: sector, industry, summary, market cap, employees."""
     return await _do("get_company_profile", "company",
                      (symbol.upper(),), _c.TTL_COMPANY,
-                     lambda p: p.company(symbol), symbol=symbol)
+                     lambda p, s: p.company(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -153,7 +173,7 @@ async def get_fundamentals(symbol: str) -> dict:
     """Fundamental ratios. For IDX banks also includes NIM/NPL/CAR/LDR/CASA when the provider supplies them."""
     return await _do("get_fundamentals", "financials",
                      (symbol.upper(),), _c.TTL_FUNDAMENTALS,
-                     lambda p: p.financials(symbol), symbol=symbol)
+                     lambda p, s: p.financials(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -167,7 +187,7 @@ async def get_financial_statements(symbol: str) -> dict:
     """Annual income statement, balance sheet, cash flow."""
     return await _do("get_financial_statements", "statements",
                      (symbol.upper(),), _c.TTL_STATEMENTS,
-                     lambda p: p.financial_statements(symbol), symbol=symbol)
+                     lambda p, s: p.financial_statements(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -175,7 +195,7 @@ async def get_dividends(symbol: str) -> dict:
     """Dividend history (ex-date, payment date, per-share amount, currency)."""
     return await _do("get_dividends", "dividends",
                      (symbol.upper(),), _c.TTL_DIVIDENDS,
-                     lambda p: p.dividends(symbol), symbol=symbol)
+                     lambda p, s: p.dividends(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -183,7 +203,7 @@ async def get_corporate_actions(symbol: str) -> dict:
     """Corporate actions: splits, rights issues, bonus shares, dividends."""
     return await _do("get_corporate_actions", "corporate_actions",
                      (symbol.upper(),), _c.TTL_CORP_ACTIONS,
-                     lambda p: p.corporate_actions(symbol), symbol=symbol)
+                     lambda p, s: p.corporate_actions(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -191,7 +211,7 @@ async def get_sector_info(symbol: str) -> dict:
     """Sector / industry classification. For IDX, returns IDX-IC taxonomy when available."""
     return await _do("get_sector_info", "sector",
                      (symbol.upper(),), _c.TTL_SECTOR,
-                     lambda p: p.sector(symbol), symbol=symbol)
+                     lambda p, s: p.sector(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -201,7 +221,7 @@ async def get_sec_filings(symbol: str, form_type: str | None = None,
     return await _do("get_sec_filings", "sec:filings",
                      (symbol.upper(), form_type or "*", limit),
                      _c.TTL_SEC_FILINGS,
-                     lambda p: p.sec_filings(symbol, form_type, limit),
+                     lambda p, s: p.sec_filings(s, form_type, limit),
                      symbol=symbol)
 
 
@@ -212,7 +232,7 @@ async def get_sec_facts(symbol: str, concept: str,
     return await _do("get_sec_facts", "sec:facts",
                      (symbol.upper(), concept, taxonomy),
                      _c.TTL_SEC_FACTS,
-                     lambda p: p.sec_facts(symbol, concept, taxonomy),
+                     lambda p, s: p.sec_facts(s, concept, taxonomy),
                      symbol=symbol)
 
 
@@ -236,9 +256,9 @@ async def valuation_dcf(
       - net_debt = total_debt - cash from most recent balance sheet.
     Result carries the full assumption dict for auditability.
     """
-    async def _compute(p):
-        fundamentals = await p.financials(symbol)
-        stmts = await p.financial_statements(symbol)
+    async def _compute(p, s):
+        fundamentals = await p.financials(s)
+        stmts = await p.financial_statements(s)
 
         fcf_series = [c.free_cash_flow for c in (stmts.cashflow or [])
                       if c.free_cash_flow is not None]
@@ -264,7 +284,7 @@ async def valuation_dcf(
                 net_debt = debt - cash
 
         shares = None
-        market_cap = getattr(await p.company(symbol), "market_cap", None)
+        market_cap = getattr(await p.company(s), "market_cap", None)
         # Best-effort shares: fundamentals doesn't carry it directly;
         # skip per-share if market_cap missing.
 
@@ -316,8 +336,8 @@ async def valuation_sensitivity(
     dr = discount_rates or [0.08, 0.09, 0.10, 0.11, 0.12]
     tg = terminal_growths or [0.01, 0.02, 0.03, 0.04]
 
-    async def _compute(p):
-        stmts = await p.financial_statements(symbol)
+    async def _compute(p, s):
+        stmts = await p.financial_statements(s)
         fcf_series = [c.free_cash_flow for c in (stmts.cashflow or [])
                       if c.free_cash_flow is not None]
         if not fcf_series:
@@ -349,8 +369,8 @@ async def valuation_sensitivity(
 @mcp.tool()
 async def get_technical(symbol: str, period: str = "1y") -> dict:
     """Deterministic technical indicators: SMA(20/50/200), EMA20, RSI14, MACD, volatility, drawdown."""
-    async def _compute(p):
-        candles = await p.history(symbol, period, "1d")
+    async def _compute(p, s):
+        candles = await p.history(s, period, "1d")
         return {"symbol": symbol.upper(), "period": period, **ta.summary(candles)}
     return await _do("get_technical", "history",
                      (symbol.upper(), period), _c.TTL_HISTORY,
@@ -404,7 +424,7 @@ async def get_foreign_flow(symbol: str) -> dict:
     """IDX foreign investor net flow per day (last ~30 days)."""
     return await _do("get_foreign_flow", "foreign_flow",
                      (symbol.upper(),), _c.TTL_FOREIGN_FLOW,
-                     lambda p: p.foreign_flow(symbol), symbol=symbol)
+                     lambda p, s: p.foreign_flow(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -420,7 +440,7 @@ async def get_broker_activity(symbol: str, date: str | None = None) -> dict:
     """Broker buy/sell summary for an IDX symbol (per broker code)."""
     return await _do("get_broker_activity", "broker_activity",
                      (symbol.upper(), date or "latest"), _c.TTL_BROKER,
-                     lambda p: p.broker_activity(symbol, date), symbol=symbol)
+                     lambda p, s: p.broker_activity(s, date), symbol=symbol)
 
 
 @mcp.tool()
@@ -428,7 +448,7 @@ async def get_order_book(symbol: str, depth: int = 10) -> dict:
     """Current bid/ask depth for an IDX symbol."""
     return await _do("get_order_book", "order_book",
                      (symbol.upper(), depth), _c.TTL_ORDER_BOOK,
-                     lambda p: p.order_book(symbol, depth), symbol=symbol)
+                     lambda p, s: p.order_book(s, depth), symbol=symbol)
 
 
 @mcp.tool()
@@ -452,7 +472,7 @@ async def get_disclosures(symbol: str, limit: int = 20) -> dict:
     """Company disclosures / announcements filed to IDX."""
     return await _do("get_disclosures", "disclosures",
                      (symbol.upper(), limit), _c.TTL_DISCLOSURES,
-                     lambda p: p.disclosures(symbol, limit), symbol=symbol)
+                     lambda p, s: p.disclosures(s, limit), symbol=symbol)
 
 
 @mcp.tool()
@@ -460,7 +480,7 @@ async def get_board(symbol: str) -> dict:
     """Board of Commissioners + Board of Directors for an IDX company."""
     return await _do("get_board", "board",
                      (symbol.upper(),), _c.TTL_BOARD,
-                     lambda p: p.board(symbol), symbol=symbol)
+                     lambda p, s: p.board(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -468,7 +488,7 @@ async def get_shareholders(symbol: str) -> dict:
     """Major shareholders (name, kind, shares, %)."""
     return await _do("get_shareholders", "shareholders",
                      (symbol.upper(),), _c.TTL_SHAREHOLDERS,
-                     lambda p: p.shareholders(symbol), symbol=symbol)
+                     lambda p, s: p.shareholders(s), symbol=symbol)
 
 
 @mcp.tool()
@@ -476,7 +496,7 @@ async def get_subsidiaries(symbol: str) -> dict:
     """Company subsidiaries with ownership % and business line."""
     return await _do("get_subsidiaries", "subsidiaries",
                      (symbol.upper(),), _c.TTL_SUBSIDIARIES,
-                     lambda p: p.subsidiaries(symbol), symbol=symbol)
+                     lambda p, s: p.subsidiaries(s), symbol=symbol)
 
 
 @mcp.tool()
