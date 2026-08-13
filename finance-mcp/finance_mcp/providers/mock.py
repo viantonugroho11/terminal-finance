@@ -14,6 +14,17 @@ from ..models import (
     CorporateAction, CorporateActionHistory,
     SectorInfo,
     MacroObservation, MacroSeries,
+    ForeignFlow, ForeignFlowDay,
+    SearchResult,
+    BrokerActivity, BrokerActivityRow,
+    OrderBook, OrderBookLevel,
+    IpoCalendar, IpoEvent,
+    TradingCalendar, TradingCalendarDay,
+    DisclosureFeed, DisclosureItem,
+    Board, BoardMember,
+    Shareholders, ShareholderEntry,
+    SubsidiaryList, Subsidiary,
+    IdxMarketOverview, IndexQuote, SectorPerf,
 )
 
 
@@ -33,6 +44,10 @@ class MockProvider:
         "macro:bi_rate", "macro:jisdor", "macro:inflation",
         "macro:gdp", "macro:cpi", "macro:unemployment",
         "macro:banking_spi",
+        "foreign_flow", "search", "broker_activity", "order_book",
+        "ipo_calendar", "trading_calendar", "disclosures",
+        "board", "shareholders", "subsidiaries",
+        "idx_market_overview", "idx_market_movers",
     })
     requires_api_key = False
 
@@ -154,6 +169,127 @@ class MockProvider:
                 CorporateAction(date="2024-08-01", kind="split",
                                 ratio="2:1", description="Mock 2-for-1 split"),
             ],
+        )
+
+    async def foreign_flow(self, symbol: str) -> ForeignFlow:
+        s = _seed(symbol)
+        return ForeignFlow(
+            symbol=symbol.upper(),
+            days=[
+                ForeignFlowDay(date=f"2025-08-{d:02d}",
+                               buy_value=s * 1e6, sell_value=s * 0.9e6,
+                               net_value=s * 0.1e6)
+                for d in (11, 12, 13)
+            ],
+        )
+
+    async def search(self, query: str, limit: int = 20) -> list[SearchResult]:
+        q = (query or "").strip().upper()
+        return [SearchResult(symbol=f"{q}.JK", name=f"{q} Tbk",
+                             sector="Technology")] if q else []
+
+    async def broker_activity(self, symbol: str,
+                              date: str | None = None) -> BrokerActivity:
+        return BrokerActivity(
+            symbol=symbol.upper(), date=date or "2025-08-13",
+            rows=[
+                BrokerActivityRow(broker_code="YP", broker_name="MockSec",
+                                  buy_lot=1000, sell_lot=800,
+                                  buy_value=1e9, sell_value=8e8, net_value=2e8),
+                BrokerActivityRow(broker_code="CC", broker_name="MockBroker",
+                                  buy_lot=500, sell_lot=700,
+                                  buy_value=5e8, sell_value=7e8, net_value=-2e8),
+            ],
+        )
+
+    async def order_book(self, symbol: str, depth: int = 10) -> OrderBook:
+        s = _seed(symbol)
+        return OrderBook(
+            symbol=symbol.upper(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            bids=[OrderBookLevel(price=s - i, volume=1000 * (i + 1))
+                  for i in range(min(depth, 5))],
+            asks=[OrderBookLevel(price=s + 1 + i, volume=1000 * (i + 1))
+                  for i in range(min(depth, 5))],
+        )
+
+    async def ipo_calendar(self) -> IpoCalendar:
+        return IpoCalendar(events=[
+            IpoEvent(symbol="MOCK.JK", name="Mock Tbk",
+                     listing_date="2025-09-01", offer_price=100.0,
+                     shares_offered=1_000_000, sector="Technology"),
+        ])
+
+    async def trading_calendar(self, year: int) -> TradingCalendar:
+        return TradingCalendar(year=year, days=[
+            TradingCalendarDay(date=f"{year}-01-01",
+                               is_trading_day=False,
+                               holiday_name="New Year"),
+            TradingCalendarDay(date=f"{year}-01-02", is_trading_day=True),
+        ])
+
+    async def disclosures(self, symbol: str, limit: int = 20) -> DisclosureFeed:
+        return DisclosureFeed(symbol=symbol.upper(), items=[
+            DisclosureItem(date="2025-08-10",
+                           title=f"Mock disclosure for {symbol.upper()}",
+                           category="Financial Report",
+                           url="https://example.com/mock"),
+        ])
+
+    async def board(self, symbol: str) -> Board:
+        return Board(
+            symbol=symbol.upper(),
+            commissioners=[BoardMember(name="Mock Komisaris",
+                                       position="President Commissioner",
+                                       since="2020")],
+            directors=[BoardMember(name="Mock Direktur",
+                                   position="President Director",
+                                   since="2021")],
+        )
+
+    async def shareholders(self, symbol: str) -> Shareholders:
+        return Shareholders(symbol=symbol.upper(), holders=[
+            ShareholderEntry(name="Public", kind="institution",
+                             shares=500_000_000, pct=50.0),
+            ShareholderEntry(name="Founder", kind="individual",
+                             shares=500_000_000, pct=50.0),
+        ])
+
+    async def subsidiaries(self, symbol: str) -> SubsidiaryList:
+        return SubsidiaryList(symbol=symbol.upper(), subsidiaries=[
+            Subsidiary(name="Mock Subsidiary A", ownership_pct=99.9,
+                       business="Software"),
+        ])
+
+    async def idx_market_overview(self) -> IdxMarketOverview:
+        now = datetime.now(timezone.utc).isoformat()
+        return IdxMarketOverview(
+            indices=[
+                IndexQuote(code="IHSG", value=7500.0, change=25.0,
+                           change_percent=0.33, volume=15_000_000_000,
+                           value_traded=1.2e13, timestamp=now),
+                IndexQuote(code="LQ45", value=1000.0, change=3.0,
+                           change_percent=0.30, volume=5_000_000_000,
+                           value_traded=6e12, timestamp=now),
+            ],
+            sectors=[
+                SectorPerf(sector_code="A", sector_name="Financials",
+                           change_percent=0.85, value_traded=4e12),
+                SectorPerf(sector_code="G", sector_name="Technology",
+                           change_percent=-0.40, value_traded=8e11),
+            ],
+        )
+
+    async def idx_market_movers(self) -> MarketMovers:
+        def _mv(sym, pct):
+            price = _seed(sym); change = price * pct / 100
+            return MoverItem(symbol=f"{sym}.JK", name=f"{sym} Tbk",
+                             price=price, change=change,
+                             change_percent=pct, volume=5_000_000)
+        return MarketMovers(
+            top_gainers=[_mv("AAAA", 24.9), _mv("BBBB", 22.1)],
+            top_losers=[_mv("YYYY", -12.5), _mv("ZZZZ", -10.0)],
+            most_active=[_mv("BBCA", 0.5), _mv("BBRI", -0.2)],
         )
 
     async def macro_indicator(self, indicator: str) -> MacroSeries:

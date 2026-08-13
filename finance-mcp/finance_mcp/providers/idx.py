@@ -23,10 +23,21 @@ from ..errors import FinanceError, ErrorCode, classify
 from ..models import (
     Quote, Candle, Company, Financials,
     IncomeStatement, BalanceSheet, CashFlowStatement, FinancialStatements,
-    NewsItem, MarketOverview, MarketMovers,
+    NewsItem, MarketOverview, MarketMovers, MoverItem,
     DividendEvent, DividendHistory,
     CorporateAction, CorporateActionHistory,
     SectorInfo,
+    ForeignFlow, ForeignFlowDay,
+    SearchResult,
+    BrokerActivity, BrokerActivityRow,
+    OrderBook, OrderBookLevel,
+    IpoCalendar, IpoEvent,
+    TradingCalendar, TradingCalendarDay,
+    DisclosureFeed, DisclosureItem,
+    Board, BoardMember,
+    Shareholders, ShareholderEntry,
+    SubsidiaryList, Subsidiary,
+    IdxMarketOverview, IndexQuote, SectorPerf,
 )
 
 
@@ -75,6 +86,10 @@ class IdxProvider:
     capabilities = frozenset({
         "quote", "history", "company", "financials", "statements",
         "dividends", "corporate_actions", "sector",
+        "foreign_flow", "search", "broker_activity", "order_book",
+        "ipo_calendar", "trading_calendar", "disclosures",
+        "board", "shareholders", "subsidiaries",
+        "idx_market_overview", "idx_market_movers",
     })
     requires_api_key = False
 
@@ -356,3 +371,286 @@ class IdxProvider:
         raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
                            "IDX news not implemented",
                            provider=self.name)
+
+    # ── Microstructure / market-wide capabilities ─────────────────
+
+    async def foreign_flow(self, symbol: str) -> ForeignFlow:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/TradingSummary/GetForeignFlow",
+            params={"code": code}, symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or []
+        days: list[ForeignFlowDay] = []
+        for r in rows:
+            buy = _f(r.get("ForeignBuy") or r.get("BuyValue"))
+            sell = _f(r.get("ForeignSell") or r.get("SellValue"))
+            net = _f(r.get("NetValue"))
+            if net is None and buy is not None and sell is not None:
+                net = buy - sell
+            days.append(ForeignFlowDay(
+                date=str(r.get("Date") or "")[:10],
+                buy_value=buy, sell_value=sell, net_value=net,
+            ))
+        return ForeignFlow(symbol=f"{code}.JK", days=days)
+
+    async def search(self, query: str, limit: int = 20) -> list[SearchResult]:
+        q = (query or "").strip()
+        if not q:
+            return []
+        payload = await self._get_json(
+            "/ListedCompany/GetCompanyProfiles",
+            params={"start": 0, "length": max(limit, 20),
+                    "keyword": q, "language": "en-us"},
+        )
+        rows = (payload or {}).get("data") or (payload or {}).get("Rows") or []
+        out: list[SearchResult] = []
+        for r in rows[:limit]:
+            code = str(r.get("KodeEmiten") or r.get("Code") or "").upper()
+            if not code:
+                continue
+            out.append(SearchResult(
+                symbol=f"{code}.JK",
+                name=str(r.get("NamaEmiten") or r.get("Name") or code),
+                sector=r.get("Sektor") or r.get("Sector"),
+            ))
+        return out
+
+    async def broker_activity(self, symbol: str,
+                              date: str | None = None) -> BrokerActivity:
+        code = _bare(symbol)
+        params: dict[str, Any] = {"code": code}
+        if date:
+            params["date"] = date
+        payload = await self._get_json(
+            "/BrokerActivity/GetBrokerSummary",
+            params=params, symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or []
+        out: list[BrokerActivityRow] = []
+        for r in rows:
+            buy_v = _f(r.get("BuyValue"))
+            sell_v = _f(r.get("SellValue"))
+            net = _f(r.get("NetValue"))
+            if net is None and buy_v is not None and sell_v is not None:
+                net = buy_v - sell_v
+            out.append(BrokerActivityRow(
+                broker_code=str(r.get("BrokerCode") or r.get("Broker") or ""),
+                broker_name=r.get("BrokerName"),
+                buy_lot=int(r.get("BuyLot") or 0) or None,
+                sell_lot=int(r.get("SellLot") or 0) or None,
+                buy_value=buy_v, sell_value=sell_v, net_value=net,
+            ))
+        return BrokerActivity(
+            symbol=f"{code}.JK",
+            date=str((payload or {}).get("date") or date or ""),
+            rows=out,
+        )
+
+    async def order_book(self, symbol: str, depth: int = 10) -> OrderBook:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/MarketData/GetOrderBook",
+            params={"code": code, "depth": depth}, symbol=symbol,
+        )
+        data = payload or {}
+        def _levels(rows) -> list[OrderBookLevel]:
+            out: list[OrderBookLevel] = []
+            for r in (rows or []):
+                p = _f(r.get("Price"))
+                v = int(r.get("Volume") or 0)
+                if p is None or v <= 0:
+                    continue
+                out.append(OrderBookLevel(
+                    price=p, volume=v,
+                    orders=int(r.get("Orders") or 0) or None,
+                ))
+            return out
+        return OrderBook(
+            symbol=f"{code}.JK",
+            timestamp=str(data.get("timestamp")
+                          or datetime.now(timezone.utc).isoformat()),
+            bids=_levels(data.get("bids")),
+            asks=_levels(data.get("asks")),
+        )
+
+    async def ipo_calendar(self) -> IpoCalendar:
+        payload = await self._get_json(
+            "/NewListing/GetNewListing",
+            params={"start": 0, "length": 100},
+        )
+        rows = (payload or {}).get("data") or []
+        out: list[IpoEvent] = []
+        for r in rows:
+            code = str(r.get("Code") or r.get("KodeEmiten") or "").upper()
+            if not code:
+                continue
+            out.append(IpoEvent(
+                symbol=f"{code}.JK",
+                name=str(r.get("Name") or r.get("NamaEmiten") or code),
+                listing_date=str(r.get("ListingDate") or "")[:10],
+                offer_price=_f(r.get("OfferPrice")),
+                shares_offered=(int(r.get("SharesOffered") or 0) or None),
+                sector=r.get("Sector") or r.get("Sektor"),
+            ))
+        return IpoCalendar(events=out)
+
+    async def trading_calendar(self, year: int) -> TradingCalendar:
+        payload = await self._get_json(
+            "/TradingCalendar/GetCalendar",
+            params={"year": year},
+        )
+        rows = (payload or {}).get("data") or []
+        out: list[TradingCalendarDay] = []
+        for r in rows:
+            out.append(TradingCalendarDay(
+                date=str(r.get("Date") or "")[:10],
+                is_trading_day=bool(r.get("IsTradingDay", True)),
+                holiday_name=r.get("HolidayName") or r.get("Description"),
+            ))
+        return TradingCalendar(year=year, days=out)
+
+    async def disclosures(self, symbol: str,
+                          limit: int = 20) -> DisclosureFeed:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/NewsAnnouncement/GetAnnouncement",
+            params={"code": code, "start": 0, "length": limit},
+            symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or []
+        out: list[DisclosureItem] = []
+        for r in rows[:limit]:
+            out.append(DisclosureItem(
+                date=str(r.get("Date") or r.get("PublishDate") or "")[:10],
+                title=str(r.get("Title") or r.get("Subject") or ""),
+                category=r.get("Category"),
+                url=r.get("Url") or r.get("Link"),
+            ))
+        return DisclosureFeed(symbol=f"{code}.JK", items=out)
+
+    async def board(self, symbol: str) -> Board:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/ListedCompany/GetBoardOfCommissionerAndDirector",
+            params={"KodeEmiten": code, "language": "en-us"},
+            symbol=symbol,
+        )
+        commissioners: list[BoardMember] = []
+        directors: list[BoardMember] = []
+        for r in (payload or {}).get("Commissioner") or []:
+            commissioners.append(BoardMember(
+                name=str(r.get("Name") or ""),
+                position=str(r.get("Position") or ""),
+                since=r.get("Since"),
+            ))
+        for r in (payload or {}).get("Director") or []:
+            directors.append(BoardMember(
+                name=str(r.get("Name") or ""),
+                position=str(r.get("Position") or ""),
+                since=r.get("Since"),
+            ))
+        return Board(symbol=f"{code}.JK",
+                     commissioners=commissioners, directors=directors)
+
+    async def shareholders(self, symbol: str) -> Shareholders:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/ListedCompany/GetShareHolder",
+            params={"KodeEmiten": code, "language": "en-us"},
+            symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or (payload or {}).get("Shareholders") or []
+        out: list[ShareholderEntry] = []
+        for r in rows:
+            out.append(ShareholderEntry(
+                name=str(r.get("Name") or ""),
+                kind=r.get("Type") or r.get("Kind"),
+                shares=int(r.get("Shares") or 0) or None,
+                pct=_f(r.get("Percentage") or r.get("Pct")),
+            ))
+        return Shareholders(symbol=f"{code}.JK", holders=out)
+
+    async def subsidiaries(self, symbol: str) -> SubsidiaryList:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/ListedCompany/GetSubsidiary",
+            params={"KodeEmiten": code, "language": "en-us"},
+            symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or []
+        out: list[Subsidiary] = []
+        for r in rows:
+            out.append(Subsidiary(
+                name=str(r.get("Name") or r.get("SubsidiaryName") or ""),
+                ownership_pct=_f(r.get("Ownership") or r.get("Percentage")),
+                business=r.get("Business") or r.get("MainBusiness"),
+            ))
+        return SubsidiaryList(symbol=f"{code}.JK", subsidiaries=out)
+
+    async def idx_market_overview(self) -> IdxMarketOverview:
+        idx_payload = await self._get_json(
+            "/StockData/GetIndexData",
+            params={"code": "COMPOSITE"},
+        )
+        indices: list[IndexQuote] = []
+        for r in ((idx_payload or {}).get("data") or []):
+            val = _f(r.get("Value") or r.get("Last"))
+            if val is None:
+                continue
+            prev = _f(r.get("Previous")) or 0.0
+            change = val - prev
+            indices.append(IndexQuote(
+                code=str(r.get("Code") or ""),
+                value=val, change=change,
+                change_percent=(change / prev * 100.0) if prev else 0.0,
+                volume=int(r.get("Volume") or 0) or None,
+                value_traded=_f(r.get("ValueTraded")),
+                timestamp=str(r.get("Timestamp")
+                              or datetime.now(timezone.utc).isoformat()),
+            ))
+
+        sec_payload = await self._get_json(
+            "/StockData/GetSectoralSummary",
+            params={},
+        )
+        sectors: list[SectorPerf] = []
+        for r in ((sec_payload or {}).get("data") or []):
+            chg = _f(r.get("ChangePct") or r.get("ChangePercent"))
+            if chg is None:
+                continue
+            sectors.append(SectorPerf(
+                sector_code=str(r.get("Code") or ""),
+                sector_name=str(r.get("Name") or r.get("Sector") or ""),
+                change_percent=chg,
+                value_traded=_f(r.get("ValueTraded")),
+            ))
+        return IdxMarketOverview(indices=indices, sectors=sectors)
+
+    async def idx_market_movers(self) -> MarketMovers:
+        async def _fetch(kind: str) -> list[MoverItem]:
+            payload = await self._get_json(
+                "/StockData/GetTopMovers",
+                params={"type": kind, "length": 10},
+            )
+            out: list[MoverItem] = []
+            for r in ((payload or {}).get("data") or []):
+                price = _f(r.get("Close") or r.get("Price"))
+                prev = _f(r.get("Previous")) or 0.0
+                if price is None:
+                    continue
+                change = price - prev
+                out.append(MoverItem(
+                    symbol=f"{str(r.get('Code') or '').upper()}.JK",
+                    name=r.get("Name"),
+                    price=price, change=change,
+                    change_percent=(change / prev * 100.0) if prev else 0.0,
+                    volume=int(r.get("Volume") or 0),
+                ))
+            return out
+
+        gainers = await _fetch("gainer")
+        losers  = await _fetch("loser")
+        active  = await _fetch("active")
+        return MarketMovers(top_gainers=gainers, top_losers=losers,
+                            most_active=active)
