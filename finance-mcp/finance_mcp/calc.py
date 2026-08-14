@@ -48,3 +48,24 @@ def cagr(start: float, end: float, years: float) -> float | None:
     if start is None or end is None or start <= 0 or years <= 0 or end <= 0:
         return None
     return (end / start) ** (1.0 / years) - 1.0
+
+
+# ── ADR-0031: FX forward via covered interest parity ──────────────
+
+def fx_forward_via_cip(*, spot: float, rate_dom_annual: float,
+                       rate_for_annual: float, tenor_days: int,
+                       day_count: int = 360) -> tuple[float, float]:
+    """Return (forward_rate, forward_points).
+
+    CIP for a spot quoted as DOM per FOR (e.g. USDIDR: IDR per USD):
+      F = S * (1 + r_dom * t) / (1 + r_for * t)
+    where r_* are the deposit rates over tenor.
+
+    Rates are annualized decimals (0.06 = 6%). Simple interest with
+    configurable day count (360 for money market convention).
+    """
+    if spot <= 0 or tenor_days < 0 or day_count <= 0:
+        raise ValueError("invalid inputs")
+    t = tenor_days / day_count
+    fwd = spot * (1.0 + rate_dom_annual * t) / (1.0 + rate_for_annual * t)
+    return fwd, fwd - spot

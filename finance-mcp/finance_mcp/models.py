@@ -487,6 +487,91 @@ class BrokerFlowAggregate:
     top_net_sellers: list[BrokerAggRow] = field(default_factory=list)
 
 
+# ── ADR-0031: crypto + forex expansion ─────────────────────────────
+
+@dataclass
+class CryptoCandle:
+    ts: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
+
+
+@dataclass
+class CryptoOhlcv:
+    symbol: str            # BTCUSDT, BTCIDR
+    exchange: str          # binance, indodax, ...
+    timeframe: str         # 1m, 5m, 1h, 1d
+    candles: list[CryptoCandle] = field(default_factory=list)
+
+
+@dataclass
+class CryptoOrderBookLevel:
+    price: float
+    quantity: float
+
+
+@dataclass
+class CryptoOrderBook:
+    symbol: str
+    exchange: str
+    bids: list[CryptoOrderBookLevel] = field(default_factory=list)
+    asks: list[CryptoOrderBookLevel] = field(default_factory=list)
+
+
+@dataclass
+class PerpFunding:
+    symbol: str
+    exchange: str
+    rate: float               # 8h funding rate (fractional, e.g. 0.0001 = 1bp)
+    next_funding_ts: str | None = None
+
+
+@dataclass
+class PerpOpenInterest:
+    symbol: str
+    exchange: str
+    oi_base: float | None     # in base asset (BTC)
+    oi_usd: float | None      # in USD
+    change_24h_pct: float | None = None
+
+
+@dataclass
+class StablecoinPeg:
+    symbol: str
+    exchange: str
+    price: float              # in the quote (usually USD)
+    deviation_bps: float      # signed vs 1.0
+
+
+@dataclass
+class FxCross:
+    base: str
+    quote: str
+    rate: float
+    as_of: str
+
+
+@dataclass
+class JisdorRate:
+    date: str                 # ISO YYYY-MM-DD
+    rate: float               # IDR per USD
+
+
+@dataclass
+class FxForward:
+    pair: str                 # e.g. USDIDR
+    tenor_days: int
+    spot: float
+    forward: float
+    forward_points: float     # forward - spot
+    rate_dom_annual: float    # domestic ccy rate used
+    rate_for_annual: float    # foreign ccy rate used
+    method: str = "cip"       # covered interest parity
+
+
 @dataclass
 class Provenance:
     """Wrap every tool result so Hermes surfaces source + fetch time to the user.

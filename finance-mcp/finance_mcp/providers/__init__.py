@@ -46,6 +46,16 @@ CAP_MAJOR_HOLDER_CHANGES   = "major_holder_changes"
 CAP_OWNERSHIP_BREAKDOWN    = "ownership_breakdown"
 CAP_BROKER_FLOW_AGGREGATE  = "broker_flow_aggregate"
 
+# Crypto + forex expansion — ADR-0031.
+CAP_CRYPTO_OHLCV_VENUE   = "crypto_ohlcv_venue"
+CAP_CRYPTO_ORDERBOOK     = "crypto_orderbook"
+CAP_CRYPTO_FUNDING       = "crypto_funding"
+CAP_CRYPTO_OPEN_INTEREST = "crypto_open_interest"
+CAP_STABLECOIN_PEG       = "stablecoin_peg"
+CAP_FX_CROSS             = "fx_cross"
+CAP_FX_JISDOR            = "fx:jisdor_rate"
+CAP_FX_FORWARD_POINTS    = "fx_forward_points"
+
 # SEC EDGAR (US primary source) — ADR-0018.
 CAP_SEC_FILINGS       = "sec:filings"
 CAP_SEC_FACTS         = "sec:facts"

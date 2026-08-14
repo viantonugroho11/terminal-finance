@@ -704,6 +704,128 @@ async def watchlist_quotes(name: str) -> dict:
     return {"watchlist": name, "quotes": out}
 
 
+# ── crypto + forex (ADR-0031) ─────────────────────────────────────────────
+
+@mcp.tool()
+async def get_crypto_ohlcv(symbol: str, exchange: str = "binance",
+                           timeframe: str = "1h", limit: int = 200) -> dict:
+    return await _do(
+        "get_crypto_ohlcv", "crypto_ohlcv_venue",
+        (symbol.upper(), exchange.lower(), timeframe, int(limit)), 60,
+        lambda p, s: p.ohlcv(s, exchange=exchange, timeframe=timeframe,
+                             limit=limit),
+        symbol=symbol, market="CRYPTO",
+    )
+
+
+@mcp.tool()
+async def get_crypto_orderbook(symbol: str, exchange: str = "binance",
+                               depth: int = 20) -> dict:
+    return await _do(
+        "get_crypto_orderbook", "crypto_orderbook",
+        (symbol.upper(), exchange.lower(), int(depth)), 10,
+        lambda p, s: p.orderbook(s, exchange=exchange, depth=depth),
+        symbol=symbol, market="CRYPTO",
+    )
+
+
+@mcp.tool()
+async def get_stablecoin_peg(symbol: str,
+                             exchange: str = "binance") -> dict:
+    return await _do(
+        "get_stablecoin_peg", "stablecoin_peg",
+        (symbol.upper(), exchange.lower()), 60,
+        lambda p, s: p.stablecoin_peg(s, exchange=exchange),
+        symbol=symbol, market="CRYPTO",
+    )
+
+
+@mcp.tool()
+async def get_perp_funding(symbol: str, exchange: str = "Binance") -> dict:
+    return await _do(
+        "get_perp_funding", "crypto_funding",
+        (symbol.upper(), exchange.lower()), 300,
+        lambda p, s: p.perp_funding(s, exchange=exchange),
+        symbol=symbol, market="CRYPTO",
+    )
+
+
+@mcp.tool()
+async def get_perp_oi(symbol: str, exchange: str = "Binance") -> dict:
+    return await _do(
+        "get_perp_oi", "crypto_open_interest",
+        (symbol.upper(), exchange.lower()), 300,
+        lambda p, s: p.perp_open_interest(s, exchange=exchange),
+        symbol=symbol, market="CRYPTO",
+    )
+
+
+@mcp.tool()
+async def get_fx_cross(base: str, quote: str) -> dict:
+    """Cross rate via existing routed_quote (Yahoo `X=X` symbol form)."""
+    pair = f"{base.upper()}{quote.upper()}=X"
+    return await _do(
+        "get_fx_cross", "quote", (pair,), 60,
+        lambda p, s: p.quote(s), symbol=pair,
+    )
+
+
+@mcp.tool()
+async def get_jisdor_rate(date: str | None = None) -> dict:
+    return await _do(
+        "get_jisdor_rate", "fx:jisdor_rate",
+        (date or "latest",), 86400,
+        lambda p: p.jisdor_rate(date),
+        symbol=None, market="MACRO",
+    )
+
+
+@mcp.tool()
+async def get_fx_forward(base: str, quote: str, tenor_days: int,
+                         *,
+                         spot: float | None = None,
+                         rate_dom_annual: float | None = None,
+                         rate_for_annual: float | None = None) -> dict:
+    """Forward via covered interest parity.
+
+    `spot` defaults to a fresh quote; rates default to BI Rate for IDR
+    domestic and 0.0525 for USD foreign (best-effort — caller should
+    override for precision). Result carries `method: "cip"` in payload
+    plus `derived: true` in provenance so downstream never confuses
+    this with a tradable quote.
+    """
+    from .calc import fx_forward_via_cip
+    from .registry import routed_quote
+    pair_txt = f"{base.upper()}{quote.upper()}"
+    # Spot
+    if spot is None:
+        try:
+            q = await routed_quote(f"{base.upper()}{quote.upper()}=X")
+            spot = float(getattr(q, "last", None)
+                         or (q.get("last") if isinstance(q, dict) else 0.0))
+        except Exception:
+            spot = None
+    if not spot or spot <= 0:
+        return {"error": {"code": "DATA_UNAVAILABLE",
+                          "message": f"spot for {pair_txt} unavailable"}}
+    # Defaults if caller omits rates
+    r_dom = rate_dom_annual if rate_dom_annual is not None else 0.0625
+    r_for = rate_for_annual if rate_for_annual is not None else 0.0525
+    fwd, points = fx_forward_via_cip(
+        spot=spot, rate_dom_annual=r_dom, rate_for_annual=r_for,
+        tenor_days=tenor_days,
+    )
+    payload = {
+        "pair": pair_txt, "tenor_days": int(tenor_days),
+        "spot": spot, "forward": fwd, "forward_points": points,
+        "rate_dom_annual": r_dom, "rate_for_annual": r_for,
+        "method": "cip", "derived": True,
+    }
+    return {"data": payload, "provenance": {
+        "source": "derived", "derived": True, "method": "cip",
+    }}
+
+
 # ── backtest engine (ADR-0029, in-process v1) ─────────────────────────────
 
 @mcp.tool()

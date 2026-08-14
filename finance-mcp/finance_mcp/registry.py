@@ -16,6 +16,8 @@ from .providers.bps import BpsProvider
 from .providers.ojk import OjkProvider
 from .providers.sec import SecProvider
 from .providers.ksei import KseiProvider
+from .providers.crypto import CryptoProvider
+from .providers.coinglass import CoinglassProvider
 from .retry import with_retry
 from .router import Router
 
@@ -40,6 +42,10 @@ def build_router() -> Router:
         r.register(SecProvider())
     if os.getenv("FINANCE_KSEI", "on").lower() != "off":
         r.register(KseiProvider())
+    if os.getenv("FINANCE_CRYPTO", "on").lower() != "off":
+        r.register(CryptoProvider())
+    if os.getenv("FINANCE_COINGLASS", "on").lower() != "off":
+        r.register(CoinglassProvider())
     return r
 
 

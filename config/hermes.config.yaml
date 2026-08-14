@@ -81,6 +81,15 @@ mcp_servers:
         - watch_delete
         - watch_evaluate_once
         - morning_digest
+        # crypto + forex (ADR-0031)
+        - get_crypto_ohlcv
+        - get_crypto_orderbook
+        - get_stablecoin_peg
+        - get_perp_funding
+        - get_perp_oi
+        - get_fx_cross
+        - get_jisdor_rate
+        - get_fx_forward
         # backtest engine (ADR-0029)
         - list_strategies
         - submit_backtest

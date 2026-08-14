@@ -15,7 +15,7 @@ from typing import Any
 import httpx
 
 from ..errors import FinanceError, ErrorCode
-from ..models import MacroObservation, MacroSeries
+from ..models import MacroObservation, MacroSeries, JisdorRate
 
 
 _BASE = "https://www.bi.go.id"
@@ -108,6 +108,7 @@ class BiProvider:
     markets = frozenset({"MACRO"})
     capabilities = frozenset({
         "macro:bi_rate", "macro:jisdor",
+        "fx:jisdor_rate",   # ADR-0031 single-value convenience
     })
     requires_api_key = False
     attribution = "Bank Indonesia"
@@ -195,3 +196,23 @@ class BiProvider:
             description="Jakarta Interbank Spot Dollar Rate (USD/IDR)",
             attribution=self.attribution,
         )
+
+    async def jisdor_rate(self, date: str | None = None) -> JisdorRate:
+        """Single-row JISDOR — latest by default, or on `date` if provided.
+
+        Reuses the same scrape as `_jisdor`; picks the matching observation.
+        """
+        series = await self._jisdor()
+        if not series.observations:
+            raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
+                               "no JISDOR observations parsed",
+                               provider=self.name)
+        if date is None:
+            latest = max(series.observations, key=lambda o: o.date)
+            return JisdorRate(date=latest.date, rate=float(latest.value))
+        for o in series.observations:
+            if o.date == date:
+                return JisdorRate(date=o.date, rate=float(o.value))
+        raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
+                           f"JISDOR has no rate for {date}",
+                           provider=self.name)
