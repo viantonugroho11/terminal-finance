@@ -1,10 +1,10 @@
 # Finance Terminal
 
-[![version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/viantonugroho11/terminal-finance/releases/tag/v0.2.0)
-[![tests](https://img.shields.io/badge/tests-211%20passing-brightgreen.svg)]()
-[![tools](https://img.shields.io/badge/mcp%20tools-37-informational.svg)]()
-[![skills](https://img.shields.io/badge/skills-12-informational.svg)]()
-[![providers](https://img.shields.io/badge/providers-7-informational.svg)]()
+[![version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/viantonugroho11/terminal-finance/releases/tag/v0.3.0)
+[![tests](https://img.shields.io/badge/tests-298%20passing-brightgreen.svg)]()
+[![tools](https://img.shields.io/badge/mcp%20tools-78-informational.svg)]()
+[![skills](https://img.shields.io/badge/skills-20-informational.svg)]()
+[![providers](https://img.shields.io/badge/providers-9-informational.svg)]()
 
 Chat-driven financial research terminal. Ask in plain English or Indonesian — get quotes, fundamentals, valuations, macro data, and full equity research reports, sourced from live upstreams with provenance on every answer.
 
