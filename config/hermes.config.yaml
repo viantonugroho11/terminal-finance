@@ -81,6 +81,11 @@ mcp_servers:
         - watch_delete
         - watch_evaluate_once
         - morning_digest
+        # backtest engine (ADR-0029)
+        - list_strategies
+        - submit_backtest
+        - get_backtest_status
+        - get_backtest_result
         # portfolio lots + tax + rebalance (ADR-0027)
         - record_trade
         - list_lots

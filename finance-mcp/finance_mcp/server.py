@@ -25,6 +25,7 @@ from .resolver import resolve as resolve_symbol
 from .retry import with_retry
 from .watch import db as wdb, store as wstore, rules as wrules, evaluator as weval
 from .news import db as ndb, store as nstore, ingest as ningest, sentiment as nsent
+from .backtest import db as btdb, service as btsvc, strategies as btstrat
 from . import digest as _digest
 
 
@@ -33,6 +34,7 @@ pdb.init()
 plots.init()
 wdb.init()
 ndb.init()
+btdb.init()
 
 
 def _primary_name() -> str:
@@ -700,6 +702,93 @@ async def watchlist_quotes(name: str) -> dict:
         else:
             out.append(_deep_asdict(q))
     return {"watchlist": name, "quotes": out}
+
+
+# ── backtest engine (ADR-0029, in-process v1) ─────────────────────────────
+
+@mcp.tool()
+async def list_strategies() -> dict:
+    return {"strategies": sorted(btstrat.REGISTRY.keys())}
+
+
+@mcp.tool()
+async def submit_backtest(
+    strategy: str,
+    symbol: str,
+    start: str,
+    end: str,
+    *,
+    params: dict | None = None,
+    market: str = "ID",
+    period: str = "1y",
+    interval: str = "1d",
+    initial_cash: float = 100_000_000.0,
+) -> dict:
+    """Fetch OHLCV via existing router, run strategy, persist result.
+
+    Blocks until complete (v1 is sync). Returns job_id + status snapshot.
+    """
+    if strategy not in btstrat.REGISTRY:
+        return {"error": {"code": "INVALID_INPUT",
+                          "message": f"unknown strategy: {strategy!r}. "
+                          f"Known: {sorted(btstrat.REGISTRY)}"}}
+    # Fetch bars via router (lazy import keeps unit tests offline).
+    try:
+        from .registry import routed_history
+        hist = await routed_history(symbol, period=period, interval=interval)
+        candles = getattr(hist, "candles", None) or (
+            hist.get("candles") if isinstance(hist, dict) else None
+        )
+        if not candles:
+            return {"error": {"code": "DATA_UNAVAILABLE",
+                              "message": f"no OHLCV for {symbol}"}}
+        # Normalize to dict form + filter date range.
+        bars = []
+        for c in candles:
+            cd = c if isinstance(c, dict) else _deep_asdict(c)
+            ts = str(cd.get("ts") or cd.get("date") or "")
+            if start and ts and ts < start:
+                continue
+            if end and ts and ts > end:
+                continue
+            bars.append({
+                "ts": ts,
+                "open": float(cd.get("open") or 0),
+                "high": float(cd.get("high") or 0),
+                "low":  float(cd.get("low") or 0),
+                "close": float(cd.get("close") or 0),
+                "volume": float(cd.get("volume") or 0),
+            })
+        if not bars:
+            return {"error": {"code": "DATA_UNAVAILABLE",
+                              "message": "no bars in requested date range"}}
+    except Exception as e:
+        fe = classify(e, provider="backtest", symbol=symbol)
+        return fe.to_dict()
+
+    job_id = btsvc.create_job(
+        strategy=strategy, params=params or {},
+        universe=[symbol.upper()], start=start, end=end, market=market,
+    )
+    try:
+        btsvc.execute(job_id=job_id,
+                      bars_by_symbol={symbol.upper(): bars})
+    except Exception as e:
+        # execute() already persisted the error; caller polls via get.
+        return {"id": job_id, "status": "error",
+                "error": f"{type(e).__name__}: {e}"}
+    return {"id": job_id, "status": "done",
+            "hint": "call get_backtest_result(id) for full output"}
+
+
+@mcp.tool()
+async def get_backtest_status(job_id: str) -> dict:
+    return btsvc.get_status(job_id)
+
+
+@mcp.tool()
+async def get_backtest_result(job_id: str) -> dict:
+    return btsvc.get_result(job_id)
 
 
 # ── portfolio lots + tax + rebalance (ADR-0027) ───────────────────────────
