@@ -21,10 +21,15 @@ from .portfolio import db as pdb, service as psvc, watchlist as pwl
 from .registry import router  # process-wide Router singleton
 from .resolver import resolve as resolve_symbol
 from .retry import with_retry
+from .watch import db as wdb, store as wstore, rules as wrules, evaluator as weval
+from .news import db as ndb, store as nstore, ingest as ningest, sentiment as nsent
+from . import digest as _digest
 
 
 mcp = FastMCP("finance-mcp")
 pdb.init()
+wdb.init()
+ndb.init()
 
 
 def _primary_name() -> str:
@@ -692,6 +697,123 @@ async def watchlist_quotes(name: str) -> dict:
         else:
             out.append(_deep_asdict(q))
     return {"watchlist": name, "quotes": out}
+
+
+# ── watch (ADR-0023) ──────────────────────────────────────────────────────
+
+@mcp.tool()
+async def watch_add(
+    nl: str | None = None,
+    *,
+    symbol: str | None = None,
+    metric: str | None = None,
+    op: str | None = None,
+    threshold: float | None = None,
+    channel: str = "telegram:default",
+    cooldown_sec: int = 3600,
+    confirm: bool = False,
+) -> dict:
+    """Parse an alert rule; persist only when confirm=True.
+
+    Two-step by design (see finance-skills/watch/SKILL.md): first call
+    returns the parsed rule for user confirmation; second call with
+    `confirm=True` persists it.
+    """
+    try:
+        if nl and not (symbol and metric and op is not None and threshold is not None):
+            rule = wrules.parse_nl(nl)
+            if symbol: rule.symbol = symbol.upper()
+            if metric: rule.metric = metric
+            if op: rule.op = op
+            if threshold is not None: rule.threshold = float(threshold)
+        else:
+            rule = wrules.Rule(
+                symbol=symbol or "", metric=metric or "",
+                op=op or ">", threshold=float(threshold or 0.0),
+            )
+        rule.channel = channel
+        rule.cooldown_sec = int(cooldown_sec)
+    except Exception as e:
+        return {"error": {"code": "PARSE_FAILED", "message": str(e)}}
+
+    if not confirm:
+        return {"parsed": _deep_asdict(rule), "saved": False}
+    wstore.add(rule)
+    return {"parsed": _deep_asdict(rule), "saved": True, "id": rule.id}
+
+
+@mcp.tool()
+async def watch_list(active_only: bool = False) -> dict:
+    return {"watches": [_deep_asdict(r) for r in wstore.list_all(active_only)]}
+
+
+@mcp.tool()
+async def watch_pause(watch_id: str) -> dict:
+    return {"id": watch_id, "paused": wstore.set_disabled(watch_id, True)}
+
+
+@mcp.tool()
+async def watch_resume(watch_id: str) -> dict:
+    return {"id": watch_id, "resumed": wstore.set_disabled(watch_id, False)}
+
+
+@mcp.tool()
+async def watch_delete(watch_id: str) -> dict:
+    return {"id": watch_id, "deleted": wstore.delete(watch_id)}
+
+
+@mcp.tool()
+async def watch_evaluate_once() -> dict:
+    """Run one evaluator pass; fires rules and delivers via Telegram."""
+    results = await weval.evaluate_once()
+    return {"results": results, "count": len(results)}
+
+
+# ── morning digest (ADR-0023) ─────────────────────────────────────────────
+
+@mcp.tool()
+async def morning_digest(lang: str | None = None) -> dict:
+    """Composed pre-market digest — deterministic, LLM-safe."""
+    try:
+        payload = await _digest.build_payload()
+        text = _digest.render(payload, lang)
+        return {"text": text, "payload": payload}
+    except Exception as e:
+        fe = classify(e, provider="digest", symbol=None)
+        return fe.to_dict()
+
+
+# ── news + sentiment (ADR-0028) ───────────────────────────────────────────
+
+@mcp.tool()
+async def news_ingest_once() -> dict:
+    """Fetch RSS from configured sources; insert new articles + tag symbols."""
+    reports = await ningest.ingest_all()
+    return {"reports": [
+        {"source": r.source, "fetched": r.fetched, "new": r.new,
+         "tagged": r.tagged, "error": r.error}
+        for r in reports
+    ]}
+
+
+@mcp.tool()
+async def news_score_missing(limit: int = 50) -> dict:
+    """Run sentiment classifier over articles missing a score."""
+    n = await nsent.score_missing(limit=limit)
+    return {"scored": n}
+
+
+@mcp.tool()
+async def get_news(symbol: str | None = None, since: str | None = None,
+                   limit: int = 20) -> dict:
+    articles = nstore.list_news(symbol=symbol, since_iso=since, limit=limit)
+    return {"symbol": symbol, "since": since, "count": len(articles),
+            "articles": articles}
+
+
+@mcp.tool()
+async def news_sentiment(symbol: str, window_hours: int = 168) -> dict:
+    return nstore.sentiment_summary(symbol=symbol, window_hours=window_hours)
 
 
 def main() -> None:

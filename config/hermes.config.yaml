@@ -73,7 +73,40 @@ mcp_servers:
         - watchlist_remove
         - watchlist_list
         - watchlist_quotes
+        # watch engine (ADR-0023)
+        - watch_add
+        - watch_list
+        - watch_pause
+        - watch_resume
+        - watch_delete
+        - watch_evaluate_once
+        - morning_digest
+        # news + sentiment (ADR-0028)
+        - news_ingest_once
+        - news_score_missing
+        - get_news
+        - news_sentiment
       resources: false
+
+# Cron jobs — evaluate watches every minute in WIB market hours;
+# hourly off-hours. Digest fires 07:30 WIB on weekdays. Ingest RSS
+# every 15 minutes; score sentiment every 20 minutes.
+cron_jobs:
+  - name: watch_evaluate_mkt
+    schedule: "*/1 2-9 * * 1-5"    # 09:00-16:00 WIB (UTC+7)
+    command: "hermes tool call finance.watch_evaluate_once"
+  - name: watch_evaluate_offhours
+    schedule: "*/15 * * * *"
+    command: "hermes tool call finance.watch_evaluate_once"
+  - name: morning_digest
+    schedule: "30 0 * * 1-5"        # 07:30 WIB = 00:30 UTC
+    command: "hermes skill run morning-digest"
+  - name: news_ingest
+    schedule: "*/15 * * * *"
+    command: "hermes tool call finance.news_ingest_once"
+  - name: news_score
+    schedule: "*/20 * * * *"
+    command: "hermes tool call finance.news_score_missing limit=50"
 
 # Skills live at /opt/data/skills — mounted from ../finance-skills in compose.
 # Hermes auto-discovers per its Skills System.
