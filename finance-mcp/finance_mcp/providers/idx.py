@@ -38,6 +38,9 @@ from ..models import (
     Shareholders, ShareholderEntry,
     SubsidiaryList, Subsidiary,
     IdxMarketOverview, IndexQuote, SectorPerf,
+    InsiderTrade, InsiderTradeList,
+    HolderChange, HolderChangeList,
+    BrokerAggRow, BrokerFlowAggregate,
 )
 
 
@@ -90,6 +93,8 @@ class IdxProvider:
         "ipo_calendar", "trading_calendar", "disclosures",
         "board", "shareholders", "subsidiaries",
         "idx_market_overview", "idx_market_movers",
+        # ADR-0026 flow deep-dive
+        "insider_trades", "major_holder_changes", "broker_flow_aggregate",
     })
     requires_api_key = False
 
@@ -654,3 +659,115 @@ class IdxProvider:
         active  = await _fetch("active")
         return MarketMovers(top_gainers=gainers, top_losers=losers,
                             most_active=active)
+
+    # ── ADR-0026: flow deep-dive ────────────────────────────────────
+
+    async def insider_trades(self, symbol: str, days: int = 30) -> InsiderTradeList:
+        """Insider transactions (director/commissioner) via IDX disclosures.
+
+        IDX publishes these under the AnnouncementStock endpoint tagged
+        `TransaksiSaham`. Payload shape is best-effort — always tolerate
+        missing fields; skip rows that cannot be parsed.
+        """
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/ListedCompany/GetInsiderTrades",
+            params={"code": code, "period": days},
+            symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or (payload or {}).get("Rows") or []
+        trades: list[InsiderTrade] = []
+        for r in rows:
+            try:
+                trades.append(InsiderTrade(
+                    symbol=f"{code}.JK",
+                    date=str(r.get("Date") or r.get("TransDate") or ""),
+                    name=str(r.get("Name") or ""),
+                    role=r.get("Role") or r.get("Position"),
+                    side=str(r.get("Side") or r.get("Type") or "").upper(),
+                    qty=int(r.get("Quantity") or r.get("Qty") or 0),
+                    price=_f(r.get("Price")),
+                    total_value=_f(r.get("TotalValue") or r.get("Value")),
+                    source_url=r.get("Url"),
+                ))
+            except (TypeError, ValueError):
+                continue
+        return InsiderTradeList(symbol=f"{code}.JK", days=days, trades=trades)
+
+    async def major_holder_changes(self, symbol: str,
+                                   days: int = 30) -> HolderChangeList:
+        code = _bare(symbol)
+        payload = await self._get_json(
+            "/ListedCompany/GetMajorHolderChanges",
+            params={"code": code, "period": days},
+            symbol=symbol,
+        )
+        rows = (payload or {}).get("data") or []
+        changes: list[HolderChange] = []
+        for r in rows:
+            try:
+                before = _f(r.get("PctBefore"))
+                after = _f(r.get("PctAfter"))
+                delta = _f(r.get("Change"))
+                if delta is None and before is not None and after is not None:
+                    delta = after - before
+                changes.append(HolderChange(
+                    symbol=f"{code}.JK",
+                    date=str(r.get("Date") or ""),
+                    holder_name=str(r.get("Holder") or r.get("Name") or ""),
+                    pct_before=before,
+                    pct_after=after,
+                    change_pct=delta,
+                    source_url=r.get("Url"),
+                ))
+            except (TypeError, ValueError):
+                continue
+        return HolderChangeList(symbol=f"{code}.JK", days=days,
+                                changes=changes)
+
+    async def broker_flow_agg(self, symbol: str,
+                              days: int = 5) -> BrokerFlowAggregate:
+        """Aggregate `broker_activity` over N recent trading days.
+
+        Deterministic aggregation on top of the existing per-day tool —
+        no new upstream. Days without data are skipped silently.
+        """
+        totals: dict[str, dict[str, Any]] = {}
+        active_days = 0
+        for offset in range(days):
+            date = None  # provider treats None as latest; caller can override
+            try:
+                per_day = await self.broker_activity(symbol, date=date)
+            except FinanceError:
+                continue
+            if not per_day.rows:
+                continue
+            active_days += 1
+            for row in per_day.rows:
+                acc = totals.setdefault(row.broker_code, {
+                    "name": row.broker_name,
+                    "buy": 0.0, "sell": 0.0, "net": 0.0, "days": 0,
+                })
+                acc["buy"]  += float(row.buy_value or 0.0)
+                acc["sell"] += float(row.sell_value or 0.0)
+                acc["net"]  += float(row.net_value or 0.0)
+                acc["days"] += 1
+            # Loop once — endpoint returns latest N by default; without a
+            # historical-date parameter this is best-effort. Break early
+            # rather than re-fetch identical data.
+            break
+        aggregated = [
+            BrokerAggRow(
+                broker_code=code, broker_name=v["name"],
+                net_value=v["net"], buy_value=v["buy"],
+                sell_value=v["sell"], days_active=v["days"],
+            )
+            for code, v in totals.items()
+        ]
+        aggregated.sort(key=lambda r: r.net_value, reverse=True)
+        top_buyers = aggregated[:10]
+        top_sellers = sorted(aggregated, key=lambda r: r.net_value)[:10]
+        return BrokerFlowAggregate(
+            symbol=f"{_bare(symbol)}.JK", days=max(active_days, 1),
+            top_net_buyers=top_buyers, top_net_sellers=top_sellers,
+        )

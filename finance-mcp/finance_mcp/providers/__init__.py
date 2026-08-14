@@ -40,6 +40,12 @@ CAP_SUBSIDIARIES      = "subsidiaries"
 CAP_IDX_OVERVIEW      = "idx_market_overview"
 CAP_IDX_MOVERS        = "idx_market_movers"
 
+# IDX flow deep-dive — ADR-0026.
+CAP_INSIDER_TRADES         = "insider_trades"
+CAP_MAJOR_HOLDER_CHANGES   = "major_holder_changes"
+CAP_OWNERSHIP_BREAKDOWN    = "ownership_breakdown"
+CAP_BROKER_FLOW_AGGREGATE  = "broker_flow_aggregate"
+
 # SEC EDGAR (US primary source) — ADR-0018.
 CAP_SEC_FILINGS       = "sec:filings"
 CAP_SEC_FACTS         = "sec:facts"

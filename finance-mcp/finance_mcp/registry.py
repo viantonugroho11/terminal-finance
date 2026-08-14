@@ -15,6 +15,7 @@ from .providers.bi import BiProvider
 from .providers.bps import BpsProvider
 from .providers.ojk import OjkProvider
 from .providers.sec import SecProvider
+from .providers.ksei import KseiProvider
 from .retry import with_retry
 from .router import Router
 
@@ -37,6 +38,8 @@ def build_router() -> Router:
         r.register(OjkProvider())
     if os.getenv("FINANCE_SEC", "on").lower() != "off":
         r.register(SecProvider())
+    if os.getenv("FINANCE_KSEI", "on").lower() != "off":
+        r.register(KseiProvider())
     return r
 
 

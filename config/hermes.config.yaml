@@ -81,6 +81,17 @@ mcp_servers:
         - watch_delete
         - watch_evaluate_once
         - morning_digest
+        # portfolio lots + tax + rebalance (ADR-0027)
+        - record_trade
+        - list_lots
+        - get_unrealized_pnl
+        - get_realized_pnl
+        - rebalance_plan
+        # flow deep-dive (ADR-0026)
+        - get_insider_trades
+        - get_major_holder_changes
+        - get_broker_flow_aggregate
+        - get_ownership_breakdown
         # news + sentiment (ADR-0028)
         - news_ingest_once
         - news_score_missing

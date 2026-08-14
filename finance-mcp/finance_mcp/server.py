@@ -18,6 +18,8 @@ from .logging_ import tool_call
 from .models import Provenance, _deep_asdict
 from .providers import MACRO_INDICATOR_TO_CAP
 from .portfolio import db as pdb, service as psvc, watchlist as pwl
+from .portfolio import lots as plots, lots_calc as plcalc, rebalance as preb
+from .portfolio import tax as ptax
 from .registry import router  # process-wide Router singleton
 from .resolver import resolve as resolve_symbol
 from .retry import with_retry
@@ -28,6 +30,7 @@ from . import digest as _digest
 
 mcp = FastMCP("finance-mcp")
 pdb.init()
+plots.init()
 wdb.init()
 ndb.init()
 
@@ -697,6 +700,160 @@ async def watchlist_quotes(name: str) -> dict:
         else:
             out.append(_deep_asdict(q))
     return {"watchlist": name, "quotes": out}
+
+
+# ── portfolio lots + tax + rebalance (ADR-0027) ───────────────────────────
+
+@mcp.tool()
+async def record_trade(
+    kind: str, symbol: str, qty: float, price: float,
+    *,
+    currency: str = "IDR",
+    fee: float = 0.0,
+    tax: float = 0.0,
+    executed_at: str | None = None,
+    account: str = "main",
+    method: str = "FIFO",
+    note: str | None = None,
+) -> dict:
+    """Record a lot-level BUY or SELL. Sells match via FIFO/LIFO/HIFO."""
+    from datetime import datetime, timezone
+    ts = executed_at or datetime.now(timezone.utc).isoformat()
+    kind_u = kind.upper()
+    try:
+        if kind_u == "BUY":
+            lot = plots.Lot(
+                symbol=symbol, qty=float(qty), price=float(price),
+                acquired_at=ts, account=account, currency=currency,
+                fee=float(fee), tax=float(tax), note=note,
+            )
+            plots.record_buy(lot)
+            return {"kind": "BUY", "lot_id": lot.id, "symbol": lot.symbol,
+                    "qty": lot.qty}
+        if kind_u == "SELL":
+            closes = plots.record_sell(
+                symbol=symbol, qty=float(qty), price=float(price),
+                closed_at=ts, method=method, currency=currency,
+                fee=float(fee), tax=float(tax), account=account, note=note,
+            )
+            return {"kind": "SELL", "symbol": symbol.upper(),
+                    "method": method.upper(),
+                    "closes": [c.__dict__ for c in closes]}
+        return {"error": {"code": "INVALID_INPUT",
+                          "message": f"unknown kind: {kind!r}"}}
+    except ValueError as e:
+        return {"error": {"code": "INVALID_INPUT", "message": str(e)}}
+
+
+@mcp.tool()
+async def list_lots(symbol: str | None = None, open_only: bool = True,
+                    account: str = "main") -> dict:
+    return {"account": account, "symbol": symbol,
+            "lots": plots.list_lots(symbol=symbol, open_only=open_only,
+                                    account=account)}
+
+
+@mcp.tool()
+async def get_unrealized_pnl(quotes: dict[str, float] | None = None,
+                             account: str = "main") -> dict:
+    """Compute unrealized PnL from lots + supplied quotes.
+
+    If `quotes` omitted, calls existing routed_quote per held symbol.
+    """
+    if quotes is None:
+        from .registry import routed_quote
+        syms = list(plots.positions(account).keys())
+        q_out: dict[str, float] = {}
+        for s in syms:
+            try:
+                q = await routed_quote(s)
+                last = getattr(q, "last", None)
+                if last is None and isinstance(q, dict):
+                    last = q.get("last")
+                if last is not None:
+                    q_out[s] = float(last)
+            except Exception:
+                continue
+        quotes = q_out
+    return plcalc.unrealized_pnl(quotes, account=account)
+
+
+@mcp.tool()
+async def get_realized_pnl(account: str = "main",
+                           regime: str = "ID") -> dict:
+    return plcalc.realized_pnl(account=account, regime=regime)
+
+
+@mcp.tool()
+async def rebalance_plan(
+    targets: dict[str, float],
+    *,
+    quotes: dict[str, float] | None = None,
+    account: str = "main",
+    tolerance: float = 0.02,
+    regime: str = "ID",
+    cash: float = 0.0,
+) -> dict:
+    if quotes is None:
+        from .registry import routed_quote
+        universe = set(targets.keys()) | set(plots.positions(account).keys())
+        q_out: dict[str, float] = {}
+        for s in universe:
+            try:
+                q = await routed_quote(s)
+                last = getattr(q, "last", None)
+                if last is None and isinstance(q, dict):
+                    last = q.get("last")
+                if last is not None:
+                    q_out[s] = float(last)
+            except Exception:
+                continue
+        quotes = q_out
+    try:
+        return preb.rebalance_plan(
+            targets=targets, quotes=quotes, account=account,
+            tolerance=tolerance, regime=regime, cash=cash,
+        )
+    except ValueError as e:
+        return {"error": {"code": "INVALID_INPUT", "message": str(e)}}
+
+
+# ── IDX flow deep-dive (ADR-0026) ─────────────────────────────────────────
+
+@mcp.tool()
+async def get_insider_trades(symbol: str, days: int = 30) -> dict:
+    return await _do(
+        "get_insider_trades", "insider_trades",
+        (symbol.upper(), int(days)), _c.TTL_ONE_HOUR if hasattr(_c, "TTL_ONE_HOUR") else 3600,
+        lambda p, s: p.insider_trades(s, days=days), symbol=symbol,
+    )
+
+
+@mcp.tool()
+async def get_major_holder_changes(symbol: str, days: int = 30) -> dict:
+    return await _do(
+        "get_major_holder_changes", "major_holder_changes",
+        (symbol.upper(), int(days)), 3600,
+        lambda p, s: p.major_holder_changes(s, days=days), symbol=symbol,
+    )
+
+
+@mcp.tool()
+async def get_broker_flow_aggregate(symbol: str, days: int = 5) -> dict:
+    return await _do(
+        "get_broker_flow_aggregate", "broker_flow_aggregate",
+        (symbol.upper(), int(days)), 600,
+        lambda p, s: p.broker_flow_agg(s, days=days), symbol=symbol,
+    )
+
+
+@mcp.tool()
+async def get_ownership_breakdown(symbol: str) -> dict:
+    return await _do(
+        "get_ownership_breakdown", "ownership_breakdown",
+        (symbol.upper(),), 86400,
+        lambda p, s: p.ownership_breakdown(s), symbol=symbol,
+    )
 
 
 # ── watch (ADR-0023) ──────────────────────────────────────────────────────

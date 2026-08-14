@@ -418,6 +418,75 @@ class MarketMovers:
     most_active: list[MoverItem] = field(default_factory=list)
 
 
+# ── ADR-0026: IDX flow deep-dive ───────────────────────────────────
+
+@dataclass
+class InsiderTrade:
+    symbol: str
+    date: str              # ISO date
+    name: str              # insider name
+    role: str | None       # director, commissioner, controlling shareholder
+    side: str              # BUY | SELL
+    qty: int
+    price: float | None
+    total_value: float | None
+    source_url: str | None = None
+
+
+@dataclass
+class InsiderTradeList:
+    symbol: str
+    days: int
+    trades: list[InsiderTrade] = field(default_factory=list)
+
+
+@dataclass
+class HolderChange:
+    symbol: str
+    date: str
+    holder_name: str
+    pct_before: float | None
+    pct_after: float | None
+    change_pct: float | None      # +/− pct points
+    source_url: str | None = None
+
+
+@dataclass
+class HolderChangeList:
+    symbol: str
+    days: int
+    changes: list[HolderChange] = field(default_factory=list)
+
+
+@dataclass
+class OwnershipBreakdown:
+    symbol: str
+    as_of: str
+    foreign_pct: float | None
+    domestic_pct: float | None
+    local_institutional_pct: float | None
+    retail_pct: float | None
+    total_shares: int | None = None
+
+
+@dataclass
+class BrokerAggRow:
+    broker_code: str
+    broker_name: str | None
+    net_value: float
+    buy_value: float | None = None
+    sell_value: float | None = None
+    days_active: int = 0
+
+
+@dataclass
+class BrokerFlowAggregate:
+    symbol: str
+    days: int
+    top_net_buyers: list[BrokerAggRow] = field(default_factory=list)
+    top_net_sellers: list[BrokerAggRow] = field(default_factory=list)
+
+
 @dataclass
 class Provenance:
     """Wrap every tool result so Hermes surfaces source + fetch time to the user.
