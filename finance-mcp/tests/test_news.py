@@ -1,8 +1,10 @@
 """News + sentiment — ADR-0028 unit tests. No network."""
 from __future__ import annotations
+
 import asyncio
 import os
 import tempfile
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -11,12 +13,25 @@ os.environ.setdefault(
     tempfile.NamedTemporaryFile(suffix=".db", delete=False).name,
 )
 
-from finance_mcp.portfolio import db as pdb  # noqa: E402
-from finance_mcp.news import db as ndb, store, tagger, sentiment, ingest  # noqa: E402
+from finance_mcp.news import db as ndb  # noqa: E402
+from finance_mcp.news import ingest, sentiment, store, tagger
 from finance_mcp.news.sources import Source  # noqa: E402
+from finance_mcp.portfolio import db as pdb  # noqa: E402
 
 pdb.init()
 ndb.init()
+
+
+def _ago(hours: float) -> str:
+    """Timestamp `hours` before now, ISO-8601 UTC.
+
+    Store queries filter on a window measured from `datetime.now()`, so
+    fixtures must be clock-relative. Hardcoded dates silently expire: the
+    stamps here were pinned to 2026-08-14, and once wall-clock passed
+    2026-08-21 the 168h-window test started failing and the 24h-window test
+    began passing for the wrong reason (empty window, not the <5 threshold).
+    """
+    return (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
 
 def _reset() -> None:
@@ -49,11 +64,11 @@ def test_insert_and_dedup() -> None:
     url = "https://example.com/a"
     aid1 = store.insert_article(
         url=url, title="Test A", source="kontan",
-        published_at="2026-08-14T00:00:00+00:00",
+        published_at=_ago(1),
     )
     aid2 = store.insert_article(
         url=url, title="Test A dup", source="kontan",
-        published_at="2026-08-14T00:00:00+00:00",
+        published_at=_ago(1),
     )
     assert aid1 == aid2
     # only one row inserted (INSERT OR IGNORE)
@@ -65,7 +80,7 @@ def test_list_news_by_symbol() -> None:
     _reset()
     aid = store.insert_article(
         url="https://example.com/b", title="BBCA laba naik",
-        source="kontan", published_at="2026-08-14T01:00:00+00:00",
+        source="kontan", published_at=_ago(1),
     )
     store.tag_article(aid, ["BBCA"])
     rows = store.list_news(symbol="BBCA")
@@ -80,11 +95,13 @@ def test_sentiment_score_requires_min_articles() -> None:
             url=f"https://example.com/c{i}",
             title=f"BBCA berita {i}",
             source="kontan",
-            published_at="2026-08-14T02:00:00+00:00",
+            published_at=_ago(2),
         )
         store.tag_article(aid, ["BBCA"])
         store.set_sentiment(aid, "positive", 0.8, "test")
-    # only 4 articles — below 5 threshold
+    # 4 articles, all inside the window — None must come from the <5
+    # threshold, not from an empty window.
+    assert store.sentiment_summary("BBCA", window_hours=24)["count"] == 4
     assert store.sentiment_score("BBCA", window_hours=24) is None
 
 
@@ -95,7 +112,7 @@ def test_sentiment_summary_shape() -> None:
             url=f"https://example.com/d{i}",
             title=f"BBCA news {i}",
             source="kontan",
-            published_at="2026-08-14T03:00:00+00:00",
+            published_at=_ago(3),
         )
         store.tag_article(aid, ["BBCA"])
         label = "positive" if i % 2 == 0 else "negative"
@@ -132,7 +149,7 @@ def test_score_missing_uses_injected_classifier() -> None:
         store.insert_article(
             url=f"https://example.com/e{i}",
             title=f"BBCA news {i}", source="kontan",
-            published_at="2026-08-14T04:00:00+00:00",
+            published_at=_ago(4),
         )
     calls = []
 
