@@ -1,6 +1,6 @@
 # ADR-0025: Conversational equity screener (IDX + US)
 
-- Status: Proposed
+- Status: Proposed (spec written, not implemented — see `docs/specs/0025-conversational-screener.md`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

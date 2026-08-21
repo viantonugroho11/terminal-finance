@@ -1,6 +1,6 @@
 # ADR-0023: Alert engine + morning digest via Hermes cron + Telegram gateway
 
-- Status: Proposed
+- Status: Accepted (implemented in v0.3.0 — `finance_mcp/watch/`, `finance_mcp/digest.py`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

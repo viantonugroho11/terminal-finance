@@ -1,6 +1,6 @@
 # ADR-0028: News + sentiment layer
 
-- Status: Proposed
+- Status: Accepted (implemented in v0.3.0 — `finance_mcp/news/`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 
