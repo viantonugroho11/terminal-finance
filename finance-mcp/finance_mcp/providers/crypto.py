@@ -10,16 +10,19 @@ via short caches upstream. `fetcher` is injectable so tests do not
 hit the network.
 """
 from __future__ import annotations
+
 from typing import Any, Callable
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import (
-    CryptoOhlcv, CryptoCandle, CryptoOrderBook, CryptoOrderBookLevel,
+    CryptoCandle,
+    CryptoOhlcv,
+    CryptoOrderBook,
+    CryptoOrderBookLevel,
     StablecoinPeg,
 )
-
 
 _UA = "finance-mcp/0.2 (+crypto)"
 _HEADERS = {"User-Agent": _UA, "Accept": "application/json"}
@@ -159,7 +162,6 @@ class CryptoProvider:
                 f"{base} is not a recognized stablecoin",
                 provider=self.name, symbol=base,
             )
-        pair = f"{base}USD" if exchange.lower() == "binance" else base
         # Try USDT quote first, then USDC as fallback for USD proxy.
         candidates = [f"{base}USDT", f"{base}USDC"] if base != "USDT" else ["USDCUSDT"]
         for c in candidates:
