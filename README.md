@@ -5,6 +5,7 @@
 [![tools](https://img.shields.io/badge/mcp%20tools-78-informational.svg)]()
 [![skills](https://img.shields.io/badge/skills-20-informational.svg)]()
 [![providers](https://img.shields.io/badge/providers-9-informational.svg)]()
+[![license](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
 Chat-driven financial research terminal. Ask in plain English or Indonesian — get quotes, fundamentals, valuations, macro data, and full equity research reports, sourced from live upstreams with provenance on every answer.
 
@@ -273,6 +274,21 @@ ruff check .      # same gate CI enforces
 Runtime targets Python 3.12 (see `finance-mcp/Dockerfile`); 3.11 is the declared
 floor and both are covered by CI. The test suite additionally runs on 3.9 via the
 FastMCP shim (ADR-0006) for offline local work.
+
+---
+
+## License
+
+[GNU AGPL-3.0](LICENSE). Use, modify, and self-host freely.
+
+The one obligation worth knowing up front: **§13 — if you run a modified
+version of this over a network, you must offer its source to the users of
+that service.** Running it unmodified for yourself, or on a private box for
+people you know, triggers nothing. Publishing a modified hosted service does.
+
+Market data itself is *not* covered by this license — each upstream carries
+its own terms, and some restrict redistribution (IDX in particular). See
+[PROVIDERS](docs/PROVIDERS.md) before republishing any dataset.
 
 ---
 

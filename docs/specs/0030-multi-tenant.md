@@ -78,6 +78,12 @@ Backed by `tenants.duckdb`.
 - Deletion endpoint: `hermes-admin tenant delete <id>` — purges tenant dir + DB row.
 - Privacy policy stub in `docs/PRIVACY.md`.
 - Not-investment-advice disclaimer prepended to bot first message + `/help`.
+- **AGPL-3.0 §13 (added when the project took its licence, 2026-08-21).** Hosted
+  mode is exactly the case the network clause covers: serving a *modified*
+  version over a network obliges us to offer that version's source to its
+  users. Ship a `/source` bot command and a footer link resolving to the exact
+  commit being served — cheap now, awkward to retrofit after launch. Running
+  unmodified upstream code triggers nothing.
 
 ## Out of scope v1
 

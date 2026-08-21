@@ -2,6 +2,9 @@
 name = "finance-mcp"
 version = "0.3.0"
 description = "Finance MCP server for Hermes Agent"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "Muhammad Novianto Nugroho" }]
 requires-python = ">=3.11"
 dependencies = [
     "mcp>=1.2.0,<2.0.0",
