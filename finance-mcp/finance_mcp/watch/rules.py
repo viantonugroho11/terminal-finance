@@ -9,6 +9,8 @@ import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from .. import tenant
+
 METRICS = {
     "price_change_pct_intraday",
     "price_change_pct_1d",
@@ -38,7 +40,7 @@ class Rule:
     op: str
     threshold: float
     id: str = field(default_factory=lambda: f"w_{uuid.uuid4().hex[:16]}")
-    user: str = "default"
+    tenant_id: str = field(default_factory=lambda: tenant.current())
     window: str | None = None
     channel: str = "telegram:default"
     cooldown_sec: int = 3600
@@ -63,7 +65,7 @@ class Rule:
     def from_row(cls, row: Any) -> Rule:
         return cls(
             id=row["id"],
-            user=row["user"],
+            tenant_id=row["tenant_id"],
             symbol=row["symbol"],
             metric=row["metric"],
             op=row["op"],
