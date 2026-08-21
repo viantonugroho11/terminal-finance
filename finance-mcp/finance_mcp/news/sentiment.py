@@ -5,6 +5,7 @@ OpenAI-compatible HTTP; falls back to a lexicon-only heuristic if
 DEEPSEEK_API_KEY unset (still deterministic — useful for offline runs).
 """
 from __future__ import annotations
+
 import json
 import os
 import re
@@ -13,7 +14,6 @@ from typing import Callable
 import httpx
 
 from . import store
-
 
 Classifier = Callable[[str], dict]
 

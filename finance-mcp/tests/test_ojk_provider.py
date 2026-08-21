@@ -5,8 +5,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.providers.ojk import OjkProvider
 
 

@@ -1,6 +1,6 @@
 """Deterministic-tech smoke tests. Run: pytest -q from finance-mcp/."""
-from finance_mcp.models import Candle
 from finance_mcp import technical as ta
+from finance_mcp.models import Candle
 
 
 def _synth(n: int, start: float = 100.0, step: float = 1.0) -> list[Candle]:

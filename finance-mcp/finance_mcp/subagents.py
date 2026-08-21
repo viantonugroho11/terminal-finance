@@ -21,12 +21,13 @@ The evaluator loop (ADR-0016) plugs in the same way: coordinator's
 final Markdown gets scored, verdict drives a bounded retry.
 """
 from __future__ import annotations
+
 import asyncio
 import logging
 import time
+from collections.abc import Awaitable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
-
+from typing import Any, Callable
 
 log = logging.getLogger(__name__)
 

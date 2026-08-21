@@ -1,4 +1,3 @@
-import math
 import pytest
 from finance_mcp import calc
 

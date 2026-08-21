@@ -1,13 +1,12 @@
 """Lot store — SQLite CRUD for ADR-0027."""
 from __future__ import annotations
+
 import uuid
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from . import db
-
 
 _SCHEMA = Path(__file__).parent / "lots_schema.sql"
 

@@ -1,9 +1,9 @@
 """BiProvider — mocked HTTP."""
 import asyncio
+
 import httpx
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.providers.bi import BiProvider
 
 

@@ -1,10 +1,9 @@
 """IdxProvider unit tests — mocked HTTP, no network."""
 import asyncio
-import pytest
 
 import httpx
-
-from finance_mcp.errors import FinanceError, ErrorCode
+import pytest
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.providers.idx import IdxProvider
 
 

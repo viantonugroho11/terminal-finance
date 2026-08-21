@@ -22,7 +22,7 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0005](0005-structured-finance-errors-with-stable-codes.md) | Structured FinanceError with stable codes | Accepted |
 | [0006](0006-fastmcp-shim-for-offline-python39-tests.md) | FastMCP shim for offline / Python 3.9 tests | Accepted |
 
-### Phase 3 (Proposed — architectural gate before implementation)
+### Phase 3 (Accepted — architectural gate cleared, in production)
 
 | # | Title | Status |
 |---|---|---|
@@ -47,6 +47,22 @@ Format follows MADR-lite with the sections mandated by the Phase 3 brief:
 | [0020](0020-indonesian-market-data-providers.md) | Indonesian market data providers (IDX/BEI, BI, BPS, OJK) | Accepted |
 | [0021](0021-market-detection-and-symbol-routing.md) | Market detection and symbol-based routing | Accepted |
 | [0022](0022-idx-microstructure-capabilities.md) | IDX microstructure + market-wide capabilities (12 new tools) | Accepted |
+
+### v0.3.0 roadmap — habit loop, flow, portfolio, backtest, crypto (Phase G)
+
+Six implemented, three spec-only. Each spec lives at `docs/specs/<same-number>-*.md`.
+
+| # | Title | Status |
+|---|---|---|
+| [0023](0023-alert-engine-and-morning-digest.md) | Alert engine + morning digest | Accepted — shipped v0.3.0 |
+| [0024](0024-idx-earnings-transcript-qa.md) | IDX earnings transcript Q&A | **Proposed — not implemented** |
+| [0025](0025-conversational-screener.md) | Conversational screener | **Proposed — not implemented** |
+| [0026](0026-idx-flow-insider-institutional.md) | IDX flow — insider + institutional | Accepted — shipped v0.3.0 |
+| [0027](0027-portfolio-optimizer-idr-tax.md) | Lot-tracked portfolio + Indonesian tax | Accepted — shipped v0.3.0 |
+| [0028](0028-news-sentiment-layer.md) | News + sentiment layer | Accepted — shipped v0.3.0 |
+| [0029](0029-backtest-engine-sidecar.md) | Backtest engine | Accepted **with deviation** — shipped in-process, not as a sidecar |
+| [0030](0030-multi-tenant-hosted-mode.md) | Multi-tenant hosted mode | **Proposed — not implemented** |
+| [0031](0031-crypto-forex-expansion.md) | Crypto + forex expansion | Accepted — shipped v0.3.0 |
 
 ## Supporting docs
 

@@ -1,6 +1,8 @@
 """Backtest tables on shared finance.db."""
 from __future__ import annotations
+
 from pathlib import Path
+
 from ..portfolio.db import connect
 
 _SCHEMA = Path(__file__).parent / "schema.sql"

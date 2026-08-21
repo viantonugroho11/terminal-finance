@@ -1,5 +1,6 @@
 """Backtest engine — ADR-0029. No network."""
 from __future__ import annotations
+
 import os
 import tempfile
 
@@ -10,10 +11,10 @@ os.environ.setdefault(
     tempfile.NamedTemporaryFile(suffix=".db", delete=False).name,
 )
 
-from finance_mcp.portfolio import db as pdb  # noqa: E402
+from finance_mcp.backtest import costs, engine, metrics, service, strategies  # noqa: E402
 from finance_mcp.backtest import db as btdb  # noqa: E402
-from finance_mcp.backtest import costs, engine, metrics, strategies, service  # noqa: E402
-from finance_mcp.backtest.context import BarContext, LookAheadError, Order  # noqa: E402
+from finance_mcp.backtest.context import BarContext, LookAheadError  # noqa: E402
+from finance_mcp.portfolio import db as pdb  # noqa: E402
 
 pdb.init()
 btdb.init()

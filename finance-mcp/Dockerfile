@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml README.md* ./
+COPY pyproject.toml LICENSE README.md* ./
 COPY finance_mcp ./finance_mcp
 
 RUN uv pip install --system --no-cache -e .

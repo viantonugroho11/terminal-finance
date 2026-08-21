@@ -1,6 +1,6 @@
 import asyncio
 import time
-import pytest
+
 from finance_mcp.cache import TTLCache
 
 

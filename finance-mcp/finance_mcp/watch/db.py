@@ -1,6 +1,8 @@
 """Watch tables on shared finance.db. Bootstraps schema on import."""
 from __future__ import annotations
+
 from pathlib import Path
+
 from ..portfolio.db import connect
 
 _SCHEMA = Path(__file__).parent / "schema.sql"

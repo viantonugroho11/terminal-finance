@@ -4,6 +4,7 @@ Precision-first: only tag when the exact ticker or a configured alias
 appears as a word-boundary match in title+snippet.
 """
 from __future__ import annotations
+
 import re
 from functools import lru_cache
 from pathlib import Path

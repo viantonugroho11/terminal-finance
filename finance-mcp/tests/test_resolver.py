@@ -1,5 +1,5 @@
 """SymbolResolver — ADR-0021."""
-from finance_mcp.resolver import resolve, MarketContext
+from finance_mcp.resolver import MarketContext, resolve
 
 
 def test_us_default():

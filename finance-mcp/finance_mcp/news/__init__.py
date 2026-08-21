@@ -1,2 +1,2 @@
 """News + sentiment layer — ADR-0028."""
-from . import db, store, tagger, sentiment, ingest, sources  # noqa: F401
+from . import db, ingest, sentiment, sources, store, tagger  # noqa: F401

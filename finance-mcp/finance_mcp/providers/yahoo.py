@@ -1,14 +1,26 @@
 """Yahoo Finance provider via yfinance. Scraping-based — swap for paid API in prod."""
 from __future__ import annotations
+
 import asyncio
 from datetime import datetime, timezone
+
 import yfinance as yf
+
+from ..errors import ErrorCode, FinanceError, classify
 from ..models import (
-    Quote, Candle, Company, Financials, NewsItem,
-    IncomeStatement, BalanceSheet, CashFlowStatement, FinancialStatements,
-    MarketOverview, MarketMovers, MoverItem,
+    BalanceSheet,
+    Candle,
+    CashFlowStatement,
+    Company,
+    Financials,
+    FinancialStatements,
+    IncomeStatement,
+    MarketMovers,
+    MarketOverview,
+    MoverItem,
+    NewsItem,
+    Quote,
 )
-from ..errors import FinanceError, ErrorCode, classify
 
 
 def _run(fn, *a, **kw):
@@ -59,7 +71,7 @@ class YahooProvider:
         except FinanceError:
             raise
         except Exception as e:
-            raise classify(e, provider="yahoo", symbol=symbol)
+            raise classify(e, provider="yahoo", symbol=symbol) from e
 
     async def history(self, symbol: str, period: str = "6mo", interval: str = "1d") -> list[Candle]:
         t = yf.Ticker(symbol)
@@ -119,7 +131,7 @@ class YahooProvider:
             bal_a  = await _run(lambda: t.balance_sheet)
             cf_a   = await _run(lambda: t.cashflow)
         except Exception as e:
-            raise classify(e, provider="yahoo", symbol=symbol)
+            raise classify(e, provider="yahoo", symbol=symbol) from e
 
         def _income_row(col, df):
             g = lambda k: _n(df.loc[k, col]) if (df is not None and k in df.index) else None
@@ -166,7 +178,7 @@ class YahooProvider:
             (bucket, label, sym) for bucket, m in buckets.items() for label, sym in m.items()
         ]
         quotes = await asyncio.gather(*(self.quote(s) for _, _, s in tasks), return_exceptions=True)
-        for (bucket, label, sym), q in zip(tasks, quotes):
+        for (bucket, label, _sym), q in zip(tasks, quotes):
             if isinstance(q, Quote):
                 results[bucket][label] = q
         return MarketOverview(**results)
@@ -177,11 +189,11 @@ class YahooProvider:
             gainers = await _run(lambda: yf.screener.PredefinedScreener("day_gainers").response)
             losers  = await _run(lambda: yf.screener.PredefinedScreener("day_losers").response)
             active  = await _run(lambda: yf.screener.PredefinedScreener("most_actives").response)
-        except Exception:
+        except Exception as e:
             # Fallback: leave empty rather than fabricating movers.
             raise FinanceError(ErrorCode.DATA_UNAVAILABLE,
                                "market movers screener not available from provider",
-                               provider="yahoo")
+                               provider="yahoo") from e
 
         def _pack(payload) -> list[MoverItem]:
             items = ((payload or {}).get("finance") or {}).get("result", [{}])[0].get("quotes", [])

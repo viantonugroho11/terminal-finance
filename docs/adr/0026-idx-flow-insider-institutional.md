@@ -1,6 +1,6 @@
 # ADR-0026: IDX flow deep-dive — insider + institutional layer
 
-- Status: Proposed
+- Status: Accepted (implemented in v0.3.0 — `providers/idx.py`, `providers/ksei.py`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

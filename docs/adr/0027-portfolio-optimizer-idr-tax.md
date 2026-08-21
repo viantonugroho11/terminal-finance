@@ -1,6 +1,6 @@
 # ADR-0027: Portfolio optimizer + Indonesian tax-lot accounting
 
-- Status: Proposed
+- Status: Accepted (implemented in v0.3.0 — `finance_mcp/portfolio/`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

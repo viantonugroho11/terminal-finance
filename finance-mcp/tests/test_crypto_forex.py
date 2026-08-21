@@ -1,13 +1,12 @@
 """ADR-0031 — CryptoProvider, CoinglassProvider, JISDOR, forward CIP."""
 from __future__ import annotations
+
 import asyncio
 
 import pytest
-
-from finance_mcp.providers.crypto import CryptoProvider
-from finance_mcp.providers.coinglass import CoinglassProvider
 from finance_mcp.calc import fx_forward_via_cip
-
+from finance_mcp.providers.coinglass import CoinglassProvider
+from finance_mcp.providers.crypto import CryptoProvider
 
 # ── crypto OHLCV parse (Binance shape) ─────────────────────────────────
 
@@ -37,7 +36,7 @@ def test_ohlcv_binance_parses_candles() -> None:
 
 
 def test_ohlcv_unknown_exchange_raises() -> None:
-    from finance_mcp.errors import FinanceError, ErrorCode
+    from finance_mcp.errors import ErrorCode, FinanceError
     prov = CryptoProvider(fetcher=lambda *a, **k: None)
     with pytest.raises(FinanceError) as exc:
         asyncio.run(prov.ohlcv("BTCUSDT", exchange="mexc"))
@@ -84,7 +83,7 @@ def test_peg_positive_when_above_one() -> None:
 
 
 def test_peg_rejects_non_stablecoin() -> None:
-    from finance_mcp.errors import FinanceError, ErrorCode
+    from finance_mcp.errors import ErrorCode, FinanceError
     prov = CryptoProvider(fetcher=lambda *a, **k: None)
     with pytest.raises(FinanceError) as exc:
         asyncio.run(prov.stablecoin_peg("BTC"))
@@ -106,7 +105,7 @@ def test_perp_funding_parses() -> None:
 
 
 def test_perp_funding_empty_raises() -> None:
-    from finance_mcp.errors import FinanceError, ErrorCode
+    from finance_mcp.errors import ErrorCode, FinanceError
 
     async def fake(path: str, params: dict):
         return {"data": []}

@@ -1,6 +1,6 @@
 # ADR-0030: Multi-tenant hosted mode (public Telegram bot)
 
-- Status: Proposed
+- Status: Proposed (spec written, not implemented — see `docs/specs/0030-multi-tenant.md`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

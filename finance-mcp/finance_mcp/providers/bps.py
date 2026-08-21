@@ -11,14 +11,14 @@ variable IDs — the map below tracks them.
 Attribution: "Badan Pusat Statistik".
 """
 from __future__ import annotations
+
 import os
 from typing import Any
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import MacroObservation, MacroSeries
-
 
 _BASE = "https://webapi.bps.go.id/v1/api"
 _UA = "finance-mcp/0.1"

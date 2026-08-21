@@ -1,8 +1,8 @@
 """Router — ADR-0012 + ADR-0021."""
 import asyncio
-import pytest
 
-from finance_mcp.errors import FinanceError, ErrorCode
+import pytest
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.router import Router
 
 

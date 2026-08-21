@@ -2,7 +2,6 @@
 import asyncio
 import os
 import tempfile
-import pytest
 
 os.environ["FINANCE_PROVIDER"] = "mock"
 os.environ.setdefault("FINANCE_DB",

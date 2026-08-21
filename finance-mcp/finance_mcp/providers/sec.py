@@ -17,16 +17,19 @@ Rate limit: 10 req/sec (SEC will 429 above that). Retry handled by
 See ADR-0018.
 """
 from __future__ import annotations
+
 import os
 from typing import Any
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import (
-    SecFiling, SecFilings, SecFactObservation, SecFactSeries,
+    SecFactObservation,
+    SecFactSeries,
+    SecFiling,
+    SecFilings,
 )
-
 
 _SUBMISSIONS_BASE = "https://data.sec.gov/submissions"
 _FACTS_BASE       = "https://data.sec.gov/api/xbrl/companyfacts"

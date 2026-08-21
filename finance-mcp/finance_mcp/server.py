@@ -5,29 +5,42 @@ Errors surfaced as {"error": {code, message, ...}}, never fake defaults.
 Streamable-HTTP transport so Hermes-in-Docker can reach us.
 """
 from __future__ import annotations
+
 import os
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable
+from typing import Any, Callable
+
 from mcp.server.fastmcp import FastMCP
 
 from . import cache as _c
 from . import calc as _calc  # noqa: F401
+from . import digest as _digest
 from . import technical as ta
 from . import valuation as val
-from .errors import FinanceError, ErrorCode, classify
+from .backtest import db as btdb
+from .backtest import service as btsvc
+from .backtest import strategies as btstrat
+from .errors import ErrorCode, FinanceError, classify
 from .logging_ import tool_call
 from .models import Provenance, _deep_asdict
+from .news import db as ndb
+from .news import ingest as ningest
+from .news import sentiment as nsent
+from .news import store as nstore
+from .portfolio import db as pdb
+from .portfolio import lots as plots
+from .portfolio import lots_calc as plcalc
+from .portfolio import rebalance as preb
+from .portfolio import service as psvc
+from .portfolio import watchlist as pwl
 from .providers import MACRO_INDICATOR_TO_CAP
-from .portfolio import db as pdb, service as psvc, watchlist as pwl
-from .portfolio import lots as plots, lots_calc as plcalc, rebalance as preb
-from .portfolio import tax as ptax
 from .registry import router  # process-wide Router singleton
 from .resolver import resolve as resolve_symbol
 from .retry import with_retry
-from .watch import db as wdb, store as wstore, rules as wrules, evaluator as weval
-from .news import db as ndb, store as nstore, ingest as ningest, sentiment as nsent
-from .backtest import db as btdb, service as btsvc, strategies as btstrat
-from . import digest as _digest
-
+from .watch import db as wdb
+from .watch import evaluator as weval
+from .watch import rules as wrules
+from .watch import store as wstore
 
 mcp = FastMCP("finance-mcp")
 pdb.init()

@@ -1,6 +1,6 @@
 # ADR-0031: Crypto + forex expansion — deep coverage beyond spot quote
 
-- Status: Proposed
+- Status: Accepted (implemented in v0.3.0 — `providers/crypto.py`, `providers/coinglass.py`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

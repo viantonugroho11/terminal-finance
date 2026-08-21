@@ -4,6 +4,7 @@ Fills execute at NEXT bar open (never same-bar close). All strategy
 access to bars flows through BarContext which raises on future reads.
 """
 from __future__ import annotations
+
 from typing import Any
 
 from . import costs, metrics

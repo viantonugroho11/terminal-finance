@@ -1,5 +1,6 @@
 """Backtest result metrics — pure functions."""
 from __future__ import annotations
+
 import math
 from typing import Any
 

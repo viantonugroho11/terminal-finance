@@ -4,14 +4,14 @@ Public tier is rate-limited; COINGLASS_API_KEY promotes to paid tier
 when set. Fetcher-injectable for tests.
 """
 from __future__ import annotations
+
 import os
 from typing import Any, Callable
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import PerpFunding, PerpOpenInterest
-
 
 _BASE = "https://open-api-v3.coinglass.com"
 

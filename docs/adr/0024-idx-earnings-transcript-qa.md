@@ -1,6 +1,6 @@
 # ADR-0024: IDX earnings-call transcript ingest + Q&A skill
 
-- Status: Proposed
+- Status: Proposed (spec written, not implemented — see `docs/specs/0024-earnings-transcript-qa.md`)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

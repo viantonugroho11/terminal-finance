@@ -1,4 +1,4 @@
-from finance_mcp.errors import FinanceError, ErrorCode, classify
+from finance_mcp.errors import ErrorCode, FinanceError, classify
 
 
 def test_finance_error_str_and_dict():

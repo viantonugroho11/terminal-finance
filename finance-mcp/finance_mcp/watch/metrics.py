@@ -4,7 +4,9 @@ Each function: (symbol) -> float. Async because provider calls are async.
 Returns None if metric cannot be resolved (rule skipped, not fired).
 """
 from __future__ import annotations
-from typing import Callable, Awaitable
+
+from collections.abc import Awaitable
+from typing import Callable
 
 from ..retry import with_retry
 

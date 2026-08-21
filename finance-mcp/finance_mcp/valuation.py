@@ -9,9 +9,9 @@ inputs from `get_financial_statements` + `get_fundamentals` and hands
 them to these functions.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Sequence
 
+from collections.abc import Sequence
+from dataclasses import dataclass, field
 
 # ── Cost of capital ────────────────────────────────────────────────────
 

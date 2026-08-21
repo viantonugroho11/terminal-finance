@@ -1,6 +1,6 @@
 # ADR-0029: Backtest engine as separate sidecar (deferred)
 
-- Status: Proposed (execution deferred — see Decision)
+- Status: Accepted with deviation (implemented in v0.3.0 as an in-process package, `finance_mcp/backtest/`, not the separate sidecar container this ADR proposed — rationale in that package's docstring)
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

@@ -1,6 +1,9 @@
 """Deterministic evaluator — ADR-0016."""
 from finance_mcp.evaluator import (
-    evaluate, RUBRIC_WEIGHTS, ACCEPT_THRESHOLD, RETRY_THRESHOLD,
+    ACCEPT_THRESHOLD,
+    RETRY_THRESHOLD,
+    RUBRIC_WEIGHTS,
+    evaluate,
 )
 
 

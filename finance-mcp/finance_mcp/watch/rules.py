@@ -3,11 +3,11 @@
 Metric allowlist matches ADR-0023 + sentiment_spike from ADR-0028.
 """
 from __future__ import annotations
+
 import re
 import uuid
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from typing import Any
-
 
 METRICS = {
     "price_change_pct_intraday",
@@ -60,7 +60,7 @@ class Rule:
         return d
 
     @classmethod
-    def from_row(cls, row: Any) -> "Rule":
+    def from_row(cls, row: Any) -> Rule:
         return cls(
             id=row["id"],
             user=row["user"],

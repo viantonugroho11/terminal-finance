@@ -4,12 +4,19 @@ Extended (ADR-0008 / ADR-0020) with capability + tier + market
 declarations so the router (ADR-0012) can pick per-request.
 """
 from __future__ import annotations
-from typing import Protocol, Literal
-from ..models import (
-    Quote, Candle, Company, Financials, NewsItem,
-    FinancialStatements, MarketOverview, MarketMovers,
-)
 
+from typing import Literal, Protocol
+
+from ..models import (
+    Candle,
+    Company,
+    Financials,
+    FinancialStatements,
+    MarketMovers,
+    MarketOverview,
+    NewsItem,
+    Quote,
+)
 
 Tier = Literal["primary", "aggregator", "scraped", "mock"]
 

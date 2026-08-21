@@ -8,7 +8,6 @@ and .run().
 import sys
 import types
 
-
 try:
     import mcp.server.fastmcp  # noqa: F401
 except Exception:

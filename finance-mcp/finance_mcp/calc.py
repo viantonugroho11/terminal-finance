@@ -1,6 +1,7 @@
 """Deterministic financial calculations. LLM never does this arithmetic."""
 from __future__ import annotations
-from typing import Iterable
+
+from collections.abc import Iterable
 
 
 def percentage_change(old: float, new: float) -> float | None:

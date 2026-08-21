@@ -5,19 +5,19 @@ services (portfolio, subagent-shim, etc.) share the same router without
 a circular import.
 """
 from __future__ import annotations
-import os
-from typing import Any
 
-from .providers.mock import MockProvider
-from .providers.yahoo import YahooProvider
-from .providers.idx import IdxProvider
+import os
+
 from .providers.bi import BiProvider
 from .providers.bps import BpsProvider
+from .providers.coinglass import CoinglassProvider
+from .providers.crypto import CryptoProvider
+from .providers.idx import IdxProvider
+from .providers.ksei import KseiProvider
+from .providers.mock import MockProvider
 from .providers.ojk import OjkProvider
 from .providers.sec import SecProvider
-from .providers.ksei import KseiProvider
-from .providers.crypto import CryptoProvider
-from .providers.coinglass import CoinglassProvider
+from .providers.yahoo import YahooProvider
 from .retry import with_retry
 from .router import Router
 

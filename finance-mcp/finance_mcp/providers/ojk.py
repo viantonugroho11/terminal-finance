@@ -12,14 +12,14 @@ the portal). Without a mirror configured the provider fails
 Attribution: "OJK — Statistik Perbankan Indonesia".
 """
 from __future__ import annotations
+
 import json
 import os
 from pathlib import Path
 from typing import Any
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import MacroObservation, MacroSeries
-
 
 # Indicators the SPI snapshot may contain.
 _INDICATORS = {"npl", "car", "nim", "ldr", "credit_growth"}

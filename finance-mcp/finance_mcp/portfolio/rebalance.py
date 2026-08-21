@@ -5,6 +5,7 @@ algorithm is used here to avoid a heavy dep for v1. Output is still
 deterministic and unit-testable; upgrade to LP is a drop-in.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any
 

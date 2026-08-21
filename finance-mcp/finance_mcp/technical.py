@@ -1,6 +1,8 @@
 """Deterministic technical indicators. Never ask LLM to compute these."""
 from __future__ import annotations
+
 import pandas as pd
+
 from .models import Candle
 
 

@@ -13,36 +13,60 @@ Symbols: this adapter accepts either `BBCA` or `BBCA.JK`. Internally
 it strips the `.JK` suffix because IDX endpoints want the bare code.
 """
 from __future__ import annotations
-import asyncio
+
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode, classify
+from ..errors import ErrorCode, FinanceError
 from ..models import (
-    Quote, Candle, Company, Financials,
-    IncomeStatement, BalanceSheet, CashFlowStatement, FinancialStatements,
-    NewsItem, MarketOverview, MarketMovers, MoverItem,
-    DividendEvent, DividendHistory,
-    CorporateAction, CorporateActionHistory,
-    SectorInfo,
-    ForeignFlow, ForeignFlowDay,
+    BalanceSheet,
+    Board,
+    BoardMember,
+    BrokerActivity,
+    BrokerActivityRow,
+    BrokerAggRow,
+    BrokerFlowAggregate,
+    Candle,
+    CashFlowStatement,
+    Company,
+    CorporateAction,
+    CorporateActionHistory,
+    DisclosureFeed,
+    DisclosureItem,
+    DividendEvent,
+    DividendHistory,
+    Financials,
+    FinancialStatements,
+    ForeignFlow,
+    ForeignFlowDay,
+    HolderChange,
+    HolderChangeList,
+    IdxMarketOverview,
+    IncomeStatement,
+    IndexQuote,
+    InsiderTrade,
+    InsiderTradeList,
+    IpoCalendar,
+    IpoEvent,
+    MarketMovers,
+    MarketOverview,
+    MoverItem,
+    NewsItem,
+    OrderBook,
+    OrderBookLevel,
+    Quote,
     SearchResult,
-    BrokerActivity, BrokerActivityRow,
-    OrderBook, OrderBookLevel,
-    IpoCalendar, IpoEvent,
-    TradingCalendar, TradingCalendarDay,
-    DisclosureFeed, DisclosureItem,
-    Board, BoardMember,
-    Shareholders, ShareholderEntry,
-    SubsidiaryList, Subsidiary,
-    IdxMarketOverview, IndexQuote, SectorPerf,
-    InsiderTrade, InsiderTradeList,
-    HolderChange, HolderChangeList,
-    BrokerAggRow, BrokerFlowAggregate,
+    SectorInfo,
+    SectorPerf,
+    ShareholderEntry,
+    Shareholders,
+    Subsidiary,
+    SubsidiaryList,
+    TradingCalendar,
+    TradingCalendarDay,
 )
-
 
 _BASE = "https://www.idx.co.id/primary"
 _UA = (
@@ -727,22 +751,27 @@ class IdxProvider:
 
     async def broker_flow_agg(self, symbol: str,
                               days: int = 5) -> BrokerFlowAggregate:
-        """Aggregate `broker_activity` over N recent trading days.
+        """Rank net buyers / sellers from broker activity.
 
-        Deterministic aggregation on top of the existing per-day tool —
-        no new upstream. Days without data are skipped silently.
+        KNOWN LIMITATION — `days` is accepted but not yet honoured. The
+        upstream broker-summary endpoint exposes no historical-date
+        parameter, so only the latest session is available; requesting
+        `days=5` returns a single day and reports `days=1` in the reply.
+        Re-fetching would return identical data, so we fetch once.
+
+        Multi-day aggregation needs either a dated upstream endpoint or a
+        local daily snapshot table. The accumulator below is already
+        shaped for it: when a per-date source exists, loop the fetch and
+        the totals / `days_active` counters work unchanged.
         """
         totals: dict[str, dict[str, Any]] = {}
         active_days = 0
-        for offset in range(days):
-            date = None  # provider treats None as latest; caller can override
-            try:
-                per_day = await self.broker_activity(symbol, date=date)
-            except FinanceError:
-                continue
-            if not per_day.rows:
-                continue
-            active_days += 1
+        try:
+            per_day = await self.broker_activity(symbol, date=None)
+        except FinanceError:
+            per_day = None
+        if per_day is not None and per_day.rows:
+            active_days = 1
             for row in per_day.rows:
                 acc = totals.setdefault(row.broker_code, {
                     "name": row.broker_name,
@@ -752,10 +781,6 @@ class IdxProvider:
                 acc["sell"] += float(row.sell_value or 0.0)
                 acc["net"]  += float(row.net_value or 0.0)
                 acc["days"] += 1
-            # Loop once — endpoint returns latest N by default; without a
-            # historical-date parameter this is best-effort. Break early
-            # rather than re-fetch identical data.
-            break
         aggregated = [
             BrokerAggRow(
                 broker_code=code, broker_name=v["name"],

@@ -1,5 +1,6 @@
 import logging
-from finance_mcp.logging_ import tool_call, kv
+
+from finance_mcp.logging_ import kv, tool_call
 
 
 def test_kv_redacts_secrets():

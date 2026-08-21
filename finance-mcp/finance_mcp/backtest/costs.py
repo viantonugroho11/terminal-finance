@@ -1,5 +1,6 @@
 """Transaction cost + slippage model per market — ADR-0029."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 
