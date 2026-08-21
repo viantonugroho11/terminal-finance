@@ -2,11 +2,15 @@
 
 CREATE TABLE IF NOT EXISTS accounts (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    name         TEXT NOT NULL UNIQUE,
+    -- Owner. Single-user installs never leave 'local'; see migrations.py.
+    tenant_id    TEXT NOT NULL DEFAULT 'local',
+    name         TEXT NOT NULL,
     currency     TEXT NOT NULL DEFAULT 'USD',
     kind         TEXT NOT NULL DEFAULT 'brokerage', -- brokerage | crypto | retirement | cash
-    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (tenant_id, name)
 );
+
 
 CREATE TABLE IF NOT EXISTS transactions (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,9 +30,12 @@ CREATE INDEX IF NOT EXISTS idx_tx_executed_at    ON transactions(executed_at);
 
 CREATE TABLE IF NOT EXISTS watchlists (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    name         TEXT NOT NULL UNIQUE,
-    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+    tenant_id    TEXT NOT NULL DEFAULT 'local',
+    name         TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (tenant_id, name)
 );
+
 
 CREATE TABLE IF NOT EXISTS watchlist_items (
     watchlist_id INTEGER NOT NULL REFERENCES watchlists(id) ON DELETE CASCADE,
@@ -39,6 +46,7 @@ CREATE TABLE IF NOT EXISTS watchlist_items (
 
 CREATE TABLE IF NOT EXISTS alerts (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id    TEXT NOT NULL DEFAULT 'local',
     symbol       TEXT NOT NULL,
     metric       TEXT NOT NULL,     -- price | rsi | change_pct | drawdown
     op           TEXT NOT NULL CHECK (op IN ('>','<','>=','<=','==')),
@@ -47,3 +55,4 @@ CREATE TABLE IF NOT EXISTS alerts (
     last_fired_at TEXT,
     created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
+

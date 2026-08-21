@@ -2,6 +2,7 @@
 
 CREATE TABLE IF NOT EXISTS backtest_jobs (
     id            TEXT PRIMARY KEY,       -- bt_<hex>
+    tenant_id     TEXT NOT NULL DEFAULT 'local',
     strategy      TEXT NOT NULL,
     params_json   TEXT NOT NULL DEFAULT '{}',
     universe_json TEXT NOT NULL DEFAULT '[]',

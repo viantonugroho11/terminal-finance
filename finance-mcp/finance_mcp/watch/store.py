@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .. import tenant
 from ..portfolio.db import connect, db_path
 from .rules import Rule
 
@@ -47,9 +48,9 @@ def get(watch_id: str) -> Rule | None:
     return Rule.from_row(r) if r else None
 
 
-def list_all(active_only: bool = False, user: str = "default") -> list[Rule]:
-    q = "SELECT * FROM watches WHERE user=?"
-    args: tuple = (user,)
+def list_all(active_only: bool = False, tenant_id: str | None = None) -> list[Rule]:
+    q = "SELECT * FROM watches WHERE tenant_id=?"
+    args: tuple = (tenant_id or tenant.current(),)
     if active_only:
         q += " AND disabled=0"
     q += " ORDER BY created_at DESC"

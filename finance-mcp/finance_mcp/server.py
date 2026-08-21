@@ -15,6 +15,7 @@ from mcp.server.fastmcp import FastMCP
 from . import cache as _c
 from . import calc as _calc  # noqa: F401
 from . import digest as _digest
+from . import migrations
 from . import technical as ta
 from . import valuation as val
 from .backtest import db as btdb
@@ -48,6 +49,9 @@ plots.init()
 wdb.init()
 ndb.init()
 btdb.init()
+# Must follow every schema bootstrap: migrations skip tables that do not
+# exist yet, and record themselves as done once run.
+migrations.migrate()
 
 
 def _primary_name() -> str:

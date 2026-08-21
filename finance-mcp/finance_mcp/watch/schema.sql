@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS watches (
     id             TEXT PRIMARY KEY,
     created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-    user           TEXT NOT NULL DEFAULT 'default',
+    tenant_id      TEXT NOT NULL DEFAULT 'local',
     symbol         TEXT NOT NULL,
     metric         TEXT NOT NULL,
     op             TEXT NOT NULL CHECK (op IN ('>','<','>=','<=','==')),
@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS watches (
 );
 
 CREATE INDEX IF NOT EXISTS idx_watches_symbol ON watches(symbol);
+
 CREATE INDEX IF NOT EXISTS idx_watches_active ON watches(disabled, last_fired_at);
 
 CREATE TABLE IF NOT EXISTS watch_events (
