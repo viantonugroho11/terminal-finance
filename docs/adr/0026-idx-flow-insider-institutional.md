@@ -1,6 +1,6 @@
 # ADR-0026: IDX flow deep-dive — insider + institutional layer
 
-- Status: Accepted (implemented in v0.3.0 — `providers/idx.py`, `providers/ksei.py`)
+- Status: Accepted (implemented in v0.3.0 — `providers/idx.py`, `providers/ksei.py`). Multi-day broker aggregation initially shipped as a single-day result because the upstream endpoint has no date parameter; completed later via local daily snapshots in `finance_mcp/flow/`.
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 
