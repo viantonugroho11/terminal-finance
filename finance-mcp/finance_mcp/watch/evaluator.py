@@ -47,7 +47,9 @@ async def evaluate_once(
 ) -> list[dict]:
     now = datetime.now(timezone.utc).isoformat()
     results = []
-    for r in list(store.eligible_now(now)):
+    # Runs from cron, on nobody's behalf: it must sweep every tenant, not the
+    # process tenant. Delivery stays per-rule via Rule.channel.
+    for r in list(store.eligible_now(now, all_tenants=True)):
         try:
             results.append(await evaluate_rule(r, sender=sender))
         except Exception as e:

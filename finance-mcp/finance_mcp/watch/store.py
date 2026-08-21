@@ -49,6 +49,11 @@ def get(watch_id: str) -> Rule | None:
 
 
 def list_all(active_only: bool = False, tenant_id: str | None = None) -> list[Rule]:
+    """Rules belonging to one tenant — the caller's, unless told otherwise.
+
+    Interactive tools want this. Background sweeps must not: see
+    list_every_tenant().
+    """
     q = "SELECT * FROM watches WHERE tenant_id=?"
     args: tuple = (tenant_id or tenant.current(),)
     if active_only:
@@ -56,6 +61,25 @@ def list_all(active_only: bool = False, tenant_id: str | None = None) -> list[Ru
     q += " ORDER BY created_at DESC"
     with connect() as conn:
         rows = conn.execute(q, args).fetchall()
+    return [Rule.from_row(r) for r in rows]
+
+
+def list_every_tenant(active_only: bool = False) -> list[Rule]:
+    """Rules across all tenants, for jobs that run on nobody's behalf.
+
+    The cron evaluator has no user attached to it. Scoping it to the process
+    tenant would mean every other tenant's watches silently never fire — the
+    failure would look like "the alert just didn't happen".
+
+    Deliberately a separate function rather than a flag on list_all(): a
+    background job has to say out loud that it is crossing tenants.
+    """
+    q = "SELECT * FROM watches"
+    if active_only:
+        q += " WHERE disabled=0"
+    q += " ORDER BY created_at DESC"
+    with connect() as conn:
+        rows = conn.execute(q).fetchall()
     return [Rule.from_row(r) for r in rows]
 
 
@@ -92,9 +116,14 @@ def record_fire(watch_id: str, metric_value: float,
                     "delivered": delivered, "error": error})
 
 
-def eligible_now(now_iso: str) -> Iterable[Rule]:
-    """Rules that are active and past their cooldown window."""
-    for r in list_all(active_only=True):
+def eligible_now(now_iso: str, *, all_tenants: bool = False) -> Iterable[Rule]:
+    """Rules that are active and past their cooldown window.
+
+    `all_tenants` is what the cron evaluator passes; interactive callers get
+    their own tenant only.
+    """
+    source = list_every_tenant if all_tenants else list_all
+    for r in source(active_only=True):
         if r.last_fired_at is None:
             yield r
             continue
