@@ -22,6 +22,8 @@ from .backtest import db as btdb
 from .backtest import service as btsvc
 from .backtest import strategies as btstrat
 from .errors import ErrorCode, FinanceError, classify
+from .flow import db as fldb
+from .flow import service as flsvc
 from .logging_ import tool_call
 from .models import Provenance, _deep_asdict
 from .news import db as ndb
@@ -49,6 +51,7 @@ plots.init()
 wdb.init()
 ndb.init()
 btdb.init()
+fldb.init()
 # Must follow every schema bootstrap: migrations skip tables that do not
 # exist yet, and record themselves as done once run.
 migrations.migrate()
@@ -1068,11 +1071,22 @@ async def get_major_holder_changes(symbol: str, days: int = 30) -> dict:
 
 @mcp.tool()
 async def get_broker_flow_aggregate(symbol: str, days: int = 5) -> dict:
-    return await _do(
-        "get_broker_flow_aggregate", "broker_flow_aggregate",
-        (symbol.upper(), int(days)), 600,
-        lambda p, s: p.broker_flow_agg(s, days=days), symbol=symbol,
-    )
+    """Net buyers / sellers summed over the stored trading days.
+
+    Reads the local daily snapshots rather than the provider: the upstream
+    broker-summary endpoint answers for the latest session only, so `days`
+    could never mean anything without a local history. `days` in the reply is
+    how many days were actually available, which may be fewer than requested
+    while the history is still filling.
+    """
+    agg = await flsvc.aggregate(symbol, days=int(days))
+    return _deep_asdict(agg)
+
+
+@mcp.tool()
+async def flow_snapshot_once(symbols: list[str] | None = None) -> dict:
+    """Capture today's broker activity for tracked symbols. For daily cron."""
+    return await flsvc.snapshot_once(symbols)
 
 
 @mcp.tool()

@@ -26,8 +26,6 @@ from ..models import (
     BoardMember,
     BrokerActivity,
     BrokerActivityRow,
-    BrokerAggRow,
-    BrokerFlowAggregate,
     Candle,
     CashFlowStatement,
     Company,
@@ -118,7 +116,7 @@ class IdxProvider:
         "board", "shareholders", "subsidiaries",
         "idx_market_overview", "idx_market_movers",
         # ADR-0026 flow deep-dive
-        "insider_trades", "major_holder_changes", "broker_flow_aggregate",
+        "insider_trades", "major_holder_changes",
     })
     requires_api_key = False
 
@@ -748,51 +746,3 @@ class IdxProvider:
                 continue
         return HolderChangeList(symbol=f"{code}.JK", days=days,
                                 changes=changes)
-
-    async def broker_flow_agg(self, symbol: str,
-                              days: int = 5) -> BrokerFlowAggregate:
-        """Rank net buyers / sellers from broker activity.
-
-        KNOWN LIMITATION — `days` is accepted but not yet honoured. The
-        upstream broker-summary endpoint exposes no historical-date
-        parameter, so only the latest session is available; requesting
-        `days=5` returns a single day and reports `days=1` in the reply.
-        Re-fetching would return identical data, so we fetch once.
-
-        Multi-day aggregation needs either a dated upstream endpoint or a
-        local daily snapshot table. The accumulator below is already
-        shaped for it: when a per-date source exists, loop the fetch and
-        the totals / `days_active` counters work unchanged.
-        """
-        totals: dict[str, dict[str, Any]] = {}
-        active_days = 0
-        try:
-            per_day = await self.broker_activity(symbol, date=None)
-        except FinanceError:
-            per_day = None
-        if per_day is not None and per_day.rows:
-            active_days = 1
-            for row in per_day.rows:
-                acc = totals.setdefault(row.broker_code, {
-                    "name": row.broker_name,
-                    "buy": 0.0, "sell": 0.0, "net": 0.0, "days": 0,
-                })
-                acc["buy"]  += float(row.buy_value or 0.0)
-                acc["sell"] += float(row.sell_value or 0.0)
-                acc["net"]  += float(row.net_value or 0.0)
-                acc["days"] += 1
-        aggregated = [
-            BrokerAggRow(
-                broker_code=code, broker_name=v["name"],
-                net_value=v["net"], buy_value=v["buy"],
-                sell_value=v["sell"], days_active=v["days"],
-            )
-            for code, v in totals.items()
-        ]
-        aggregated.sort(key=lambda r: r.net_value, reverse=True)
-        top_buyers = aggregated[:10]
-        top_sellers = sorted(aggregated, key=lambda r: r.net_value)[:10]
-        return BrokerFlowAggregate(
-            symbol=f"{_bare(symbol)}.JK", days=max(active_days, 1),
-            top_net_buyers=top_buyers, top_net_sellers=top_sellers,
-        )
