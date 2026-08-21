@@ -61,8 +61,9 @@ Six implemented, three spec-only. Each spec lives at `docs/specs/<same-number>-*
 | [0027](0027-portfolio-optimizer-idr-tax.md) | Lot-tracked portfolio + Indonesian tax | Accepted — shipped v0.3.0 |
 | [0028](0028-news-sentiment-layer.md) | News + sentiment layer | Accepted — shipped v0.3.0 |
 | [0029](0029-backtest-engine-sidecar.md) | Backtest engine | Accepted **with deviation** — shipped in-process, not as a sidecar |
-| [0030](0030-multi-tenant-hosted-mode.md) | Multi-tenant hosted mode | **Proposed — not implemented** |
+| [0030](0030-multi-tenant-hosted-mode.md) | Multi-tenant hosted mode | **Blocked by ADR-0032** — storage done, identity blocked on Hermes |
 | [0031](0031-crypto-forex-expansion.md) | Crypto + forex expansion | Accepted — shipped v0.3.0 |
+| [0032](0032-tenant-identity-cannot-originate-here.md) | Tenant identity cannot originate in finance-mcp | Accepted — blocks ADR-0030 on Hermes |
 
 ## Supporting docs
 

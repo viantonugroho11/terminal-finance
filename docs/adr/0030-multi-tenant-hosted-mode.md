@@ -1,6 +1,6 @@
 # ADR-0030: Multi-tenant hosted mode (public Telegram bot)
 
-- Status: Proposed (spec written, not implemented — see `docs/specs/0030-multi-tenant.md`)
+- Status: Blocked by ADR-0032 — the storage half is implemented (tenant_id across portfolio/watch/backtest); identity cannot originate here, so quotas, fairness and the admin CLI are all downstream and unbuilt. See `docs/specs/0030-multi-tenant.md`.
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 
