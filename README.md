@@ -1,7 +1,7 @@
 # Finance Terminal
 
 [![version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/viantonugroho11/terminal-finance/releases/tag/v0.3.0)
-[![tests](https://img.shields.io/badge/tests-298%20passing-brightgreen.svg)]()
+[![CI](https://github.com/viantonugroho11/terminal-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/viantonugroho11/terminal-finance/actions/workflows/ci.yml)
 [![tools](https://img.shields.io/badge/mcp%20tools-78-informational.svg)]()
 [![skills](https://img.shields.io/badge/skills-20-informational.svg)]()
 [![providers](https://img.shields.io/badge/providers-9-informational.svg)]()
@@ -41,8 +41,8 @@ Every reply carries `{data, provenance: {source, retrieved_at, cache_hit}}` — 
 
 | Path | What it is |
 |---|---|
-| `finance-mcp/` | Python MCP server. Exposes 37 tools (quotes, fundamentals, DCF, SEC filings, IDX microstructure, macro, portfolio). Hermes calls into it over HTTP. |
-| `finance-skills/` | 12 Hermes skills: `stock-analysis`, `crypto-analysis`, `market-overview`, `portfolio-analysis`, `risk-analysis`, `valuation-analysis`, `fundamental-analysis`, `technical-analysis`, `catalyst-analysis`, `peer-analysis`, `macro-context`, and the `equity-research` coordinator that composes them. |
+| `finance-mcp/` | Python MCP server. Exposes 78 tools (quotes, fundamentals, DCF, SEC filings, IDX microstructure, macro, portfolio, watches, news, backtest, crypto/FX). Hermes calls into it over HTTP. |
+| `finance-skills/` | 20 Hermes skills. Analysis: `stock-analysis`, `fundamental-analysis`, `technical-analysis`, `valuation-analysis`, `risk-analysis`, `catalyst-analysis`, `peer-analysis`, `macro-context`, `market-overview`. Indonesia + flow: `flow-analysis`. Crypto + FX: `crypto-analysis`, `crypto-deep`, `fx-analysis`. Portfolio: `portfolio-analysis`, `portfolio-rebalance`. Daily loop: `watch`, `morning-digest`, `news-brief`. Research: `backtest`, and the `equity-research` coordinator that composes the rest. |
 | `config/` | `hermes.config.yaml` (registers the finance MCP) + `SOUL.md` (persona + safety rules). |
 | `docker/` | Compose stack: `nousresearch/hermes-agent` + `finance-mcp` sidecar on a shared network. |
 | `docs/` | Architecture, API, provider notes, runbooks, ADRs. |
@@ -226,7 +226,7 @@ Skills react per-code (retry, apologize, degrade) — they **never invent fake v
 - [RUNBOOKS](docs/RUNBOOKS.md) — refresh allowlist, add provider, debug failure, cut release
 - [CONTRIBUTING](docs/CONTRIBUTING.md) — env setup, test flow, PR checklist
 - [CHANGELOG](CHANGELOG.md) — release history
-- [ADRs](docs/adr/README.md) — 22 accepted, 1 bridged (see roadmap)
+- [ADRs](docs/adr/README.md) — 31 records: 27 accepted (1 bridged, 1 with deviation), 3 proposed-only
 
 ---
 
@@ -240,12 +240,39 @@ Skills react per-code (retry, apologize, degrade) — they **never invent fake v
 - Phase E: DCF/valuation engine (CAPM/WACC/Gordon/sensitivity/reverse-DCF) + SEC EDGAR (filings + XBRL) + canonical report format
 - Phase F Steps 1–2: six specialist analyst skills + `equity-research` coordinator + deterministic evaluator loop + in-process subagent fan-out shim
 
+**Shipped (v0.3.0, 2026-08-14):**
+- Daily habit loop: alert engine + Telegram delivery + pre-open morning digest (ADR-0023)
+- News + sentiment layer: RSS ingest, symbol tagger, sentiment scoring (ADR-0028)
+- IDX flow deep-dive: insider trades, major-holder changes, KSEI ownership (ADR-0026)
+- Lot-tracked portfolio with Indonesian tax + rebalance (ADR-0027)
+- Deterministic backtest engine, in-process (ADR-0029)
+- Crypto + forex expansion: multi-venue, derivatives, JISDOR + CIP forwards (ADR-0031)
+
 **Ahead — blocked on Hermes-side runtime:**
 - Native Hermes subagent spawn for true parallel research (ADR-0015 native tier)
 - LLM-adjudicated evaluator retry loop (ADR-0016 LLM tier)
 
+**Ahead — specced, not built:**
+- IDX earnings transcript Q&A (ADR-0024) · Conversational screener (ADR-0025)
+- Multi-tenant hosted mode (ADR-0030) — needs a tenant key in the data layer first
+
 **Ahead — in-repo:**
-- Alerts via Hermes cron · Morning briefing polish · Dedicated TUI · Crypto with IDR pairs
+- Dedicated TUI · Multi-day broker-flow aggregation (needs a dated upstream or a local daily snapshot table)
+
+---
+
+## Development
+
+```bash
+cd finance-mcp
+pip install -e ".[dev]"
+pytest            # 305 tests, fully offline — no upstream is contacted
+ruff check .      # same gate CI enforces
+```
+
+Runtime targets Python 3.12 (see `finance-mcp/Dockerfile`); 3.11 is the declared
+floor and both are covered by CI. The test suite additionally runs on 3.9 via the
+FastMCP shim (ADR-0006) for offline local work.
 
 ---
 
