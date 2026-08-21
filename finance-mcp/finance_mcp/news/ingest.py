@@ -5,6 +5,7 @@ parser sufficient for well-formed feeds. Keeps ingest usable in test
 envs where the optional dep isn't installed.
 """
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone

@@ -1,5 +1,6 @@
 """ADR-0027 — lot store, FIFO/HIFO, tax, rebalance."""
 from __future__ import annotations
+
 import os
 import tempfile
 from datetime import datetime, timezone
@@ -11,7 +12,8 @@ os.environ.setdefault(
     tempfile.NamedTemporaryFile(suffix=".db", delete=False).name,
 )
 
-from finance_mcp.portfolio import db as pdb, lots as plots  # noqa: E402
+from finance_mcp.portfolio import db as pdb  # noqa: E402
+from finance_mcp.portfolio import lots as plots
 from finance_mcp.portfolio import lots_calc as plcalc  # noqa: E402
 from finance_mcp.portfolio import rebalance as preb  # noqa: E402
 from finance_mcp.portfolio import tax as ptax  # noqa: E402

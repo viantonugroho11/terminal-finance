@@ -1,9 +1,12 @@
 """Bounded exponential backoff for transient provider errors."""
 from __future__ import annotations
+
 import asyncio
 import random
-from typing import Awaitable, Callable, TypeVar
-from .errors import FinanceError, ErrorCode, classify
+from collections.abc import Awaitable
+from typing import Callable, TypeVar
+
+from .errors import ErrorCode, FinanceError, classify
 
 T = TypeVar("T")
 

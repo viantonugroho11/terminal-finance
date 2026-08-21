@@ -2,11 +2,7 @@
 import asyncio
 import os
 import tempfile
-from pathlib import Path
 
-import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
 from finance_mcp.router import Router, _load_preference
 
 

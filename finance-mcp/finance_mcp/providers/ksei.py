@@ -12,6 +12,7 @@ changes, `PROVIDER_UNAVAILABLE` bubbles up and the router does not
 substitute a wrong number.
 """
 from __future__ import annotations
+
 import csv
 import io
 from datetime import datetime, timezone
@@ -19,9 +20,8 @@ from typing import Any
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
+from ..errors import ErrorCode, FinanceError
 from ..models import OwnershipBreakdown
-
 
 _UA = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "

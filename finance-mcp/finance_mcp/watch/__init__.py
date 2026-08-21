@@ -2,4 +2,4 @@
 
 Rule store + evaluator + delivery. Reuses portfolio.db connection.
 """
-from . import db, rules, store, evaluator, metrics  # noqa: F401
+from . import db, evaluator, metrics, rules, store  # noqa: F401

@@ -4,7 +4,8 @@ Every top-level response is wrapped in Provenance so Hermes can tell users
 where the number came from and when. NEVER strip provenance for LLM prompts.
 """
 from __future__ import annotations
-from dataclasses import dataclass, asdict, field
+
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -622,7 +623,7 @@ class Provenance:
 
 
 def _deep_asdict(obj: Any) -> Any:
-    from dataclasses import is_dataclass, fields
+    from dataclasses import fields, is_dataclass
     if is_dataclass(obj) and not isinstance(obj, type):
         return {f.name: _deep_asdict(getattr(obj, f.name)) for f in fields(obj)}
     if isinstance(obj, dict):

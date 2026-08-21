@@ -1,9 +1,9 @@
 """SecProvider — mocked HTTP, no network."""
 import asyncio
+
 import httpx
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.providers.sec import SecProvider, _pad_cik
 
 

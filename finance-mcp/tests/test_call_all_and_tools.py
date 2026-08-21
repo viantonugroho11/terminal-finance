@@ -4,8 +4,7 @@ import os
 import tempfile
 
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.router import Router
 
 

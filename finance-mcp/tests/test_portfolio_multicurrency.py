@@ -7,8 +7,8 @@ os.environ["FINANCE_PROVIDER"] = "mock"
 os.environ.setdefault("FINANCE_DB",
                       tempfile.NamedTemporaryFile(suffix=".db", delete=False).name)
 
-from finance_mcp import server  # noqa: E402
-from finance_mcp.portfolio import service as psvc, db, watchlist  # noqa: E402
+from finance_mcp.portfolio import db
+from finance_mcp.portfolio import service as psvc  # noqa: E402
 
 
 def _run(coro): return asyncio.run(coro)

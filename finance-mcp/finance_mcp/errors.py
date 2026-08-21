@@ -4,7 +4,8 @@ Never swallow errors. Never substitute fake defaults. Every failure returns a
 FinanceError with a stable code so skills can react (retry, back off, apologize).
 """
 from __future__ import annotations
-from dataclasses import dataclass, asdict, field
+
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any
 

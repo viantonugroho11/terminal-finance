@@ -4,12 +4,14 @@ Called by cron (or MCP tool `watch_evaluate_once`). One pass through
 eligible rules; fires + records events; respects cooldown via store.
 """
 from __future__ import annotations
-import asyncio
-from datetime import datetime, timezone
-from typing import Callable, Awaitable
 
+import asyncio
+from collections.abc import Awaitable
+from datetime import datetime, timezone
+from typing import Callable
+
+from . import metrics, store, telegram
 from .rules import Rule
-from . import store, metrics, telegram
 
 
 def _format_message(r: Rule, value: float) -> str:

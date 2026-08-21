@@ -1,9 +1,9 @@
 """Named strategies registry — deterministic, no external deps."""
 from __future__ import annotations
+
 from typing import Any, Callable
 
 from .context import BarContext, Order
-
 
 Strategy = Callable[[BarContext, dict[str, Any]], list[Order]]
 

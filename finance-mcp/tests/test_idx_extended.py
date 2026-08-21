@@ -1,9 +1,8 @@
 """IdxProvider extended capabilities — mocked HTTP."""
 import asyncio
+
 import httpx
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
 from finance_mcp.providers.idx import IdxProvider
 
 

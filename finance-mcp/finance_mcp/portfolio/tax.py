@@ -4,6 +4,7 @@ All rates final (PPh final), applied at sell-side unless noted.
 References: DGT PMK 34/2017 (IDX equity), PMK 68/2022 (crypto).
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 

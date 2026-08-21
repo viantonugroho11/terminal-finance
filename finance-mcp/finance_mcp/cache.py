@@ -2,11 +2,13 @@
 honor configured TTL. Not a distributed cache; sidecar process only.
 """
 from __future__ import annotations
+
 import asyncio
 import os
 import time
+from collections.abc import Awaitable, Hashable
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Hashable
+from typing import Any, Callable
 
 
 @dataclass

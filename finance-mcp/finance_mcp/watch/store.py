@@ -5,12 +5,11 @@ store. JSONL kept as append-only audit sidecar at
 `$FINANCE_DB_DIR/watches.audit.jsonl`.
 """
 from __future__ import annotations
+
 import json
-import os
-from dataclasses import asdict
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
 
 from ..portfolio.db import connect, db_path
 from .rules import Rule

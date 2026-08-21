@@ -5,7 +5,9 @@ Hermes (cron in the finance-mcp container). Silent no-op if env unset —
 returned bool tells the caller delivery outcome.
 """
 from __future__ import annotations
+
 import os
+
 import httpx
 
 

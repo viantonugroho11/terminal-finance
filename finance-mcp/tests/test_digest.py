@@ -1,5 +1,6 @@
 """Morning digest composer — ADR-0023."""
 from __future__ import annotations
+
 import os
 import tempfile
 
@@ -9,7 +10,6 @@ os.environ.setdefault(
 )
 
 from finance_mcp import digest  # noqa: E402
-
 
 _PAYLOAD = {
     "generated_at": "2026-08-14T00:30:00+00:00",

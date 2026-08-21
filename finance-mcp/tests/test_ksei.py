@@ -1,11 +1,10 @@
 """KseiProvider — ADR-0026. Uses injected fetcher (no network)."""
 from __future__ import annotations
+
 import asyncio
 
 import pytest
-
 from finance_mcp.providers.ksei import KseiProvider, parse_csv
-
 
 _CSV = (
     "Code,AsOf,ForeignPct,DomesticPct,LocalInstitutionalPct,RetailPct,TotalShares\n"
@@ -37,7 +36,7 @@ def test_provider_uses_injected_fetcher() -> None:
 
 
 def test_provider_raises_on_unknown_symbol() -> None:
-    from finance_mcp.errors import FinanceError, ErrorCode
+    from finance_mcp.errors import ErrorCode, FinanceError
 
     async def fake_fetch(sym: str) -> str:
         return _CSV

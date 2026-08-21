@@ -1,10 +1,10 @@
 """IDX flow deep-dive parsers — ADR-0026. Uses stubbed _get_json."""
 from __future__ import annotations
+
 import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
-
 from finance_mcp.providers.idx import IdxProvider
 
 

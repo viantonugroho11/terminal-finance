@@ -8,10 +8,10 @@ Score ≥ 80 = accept. 60 ≤ score < 80 = ask for retry with specific
 misses. < 60 after retries = publish with [Low-Confidence] banner.
 """
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
 from typing import Any
-
 
 # Rubric weights (must sum to 100). Mirrors phase-f-multi-agent-plan.md.
 RUBRIC_WEIGHTS: dict[str, int] = {
@@ -129,7 +129,7 @@ def _extract_symbols(md: str) -> set[str]:
                    "LDR", "CASA", "ROE", "ROA", "PER", "PBV", "EPS", "FCF",
                    "IHSG", "ETF", "REIT", "IPO", "SEC", "SPI", "JISDOR",
                    "YOY", "QOQ", "TTM", "IFRS", "GAAP", "US", "ID", "HK",
-                   "IDX", "BEI", "IHSG", "SPX", "ISO", "UTC", "JSON",
+                   "IDX", "BEI", "SPX", "ISO", "UTC", "JSON",
                    "YAML", "HTTP", "API"}:
             continue
         tokens.add(tok)

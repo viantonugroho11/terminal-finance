@@ -4,13 +4,13 @@ Pure composition on top of existing router capabilities. Deterministic —
 no LLM. Output ≤ 4096 chars (Telegram cap). Language via DIGEST_LANG env.
 """
 from __future__ import annotations
+
 import os
 from datetime import datetime, timezone
 from typing import Any
 
-from .retry import with_retry
 from .portfolio import watchlist as pwl
-
+from .retry import with_retry
 
 TELEGRAM_CAP = 4096
 

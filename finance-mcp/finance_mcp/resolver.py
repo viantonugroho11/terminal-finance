@@ -9,10 +9,10 @@ Order of precedence:
   4. Default → US equity.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
-
 
 Market = Literal["US", "IDX", "GLOBAL", "CRYPTO"]
 

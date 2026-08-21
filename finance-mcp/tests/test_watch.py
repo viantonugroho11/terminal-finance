@@ -1,9 +1,10 @@
 """Watch engine — ADR-0023 unit tests. No network."""
 from __future__ import annotations
+
 import asyncio
 import os
 import tempfile
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -13,7 +14,8 @@ os.environ.setdefault(
 )
 
 from finance_mcp.portfolio import db as pdb  # noqa: E402
-from finance_mcp.watch import db as wdb, store, rules, evaluator, metrics  # noqa: E402
+from finance_mcp.watch import db as wdb  # noqa: E402
+from finance_mcp.watch import evaluator, metrics, rules, store
 
 pdb.init()
 wdb.init()

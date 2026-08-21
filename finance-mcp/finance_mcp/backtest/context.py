@@ -5,6 +5,7 @@ CANNOT include bars after `current_index`. Attempting to fetch a future
 bar raises LookAheadError. This is the ADR-0029 "no look-ahead" guard.
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
 

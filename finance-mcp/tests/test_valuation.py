@@ -1,10 +1,17 @@
 """Reference-vector tests for finance_mcp.valuation. Deterministic math."""
 import math
-import pytest
 
+import pytest
 from finance_mcp.valuation import (
-    capm, wacc, cagr, project_fcf,
-    terminal_value_gordon, npv, dcf, sensitivity_table, implied_growth,
+    cagr,
+    capm,
+    dcf,
+    implied_growth,
+    npv,
+    project_fcf,
+    sensitivity_table,
+    terminal_value_gordon,
+    wacc,
 )
 
 

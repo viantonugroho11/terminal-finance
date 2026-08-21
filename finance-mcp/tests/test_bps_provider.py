@@ -1,9 +1,9 @@
 """BpsProvider — mocked HTTP + API key gate."""
 import asyncio
+
 import httpx
 import pytest
-
-from finance_mcp.errors import FinanceError, ErrorCode
+from finance_mcp.errors import ErrorCode, FinanceError
 from finance_mcp.providers.bps import BpsProvider
 
 

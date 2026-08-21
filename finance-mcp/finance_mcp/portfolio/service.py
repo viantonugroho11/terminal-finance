@@ -7,12 +7,13 @@ Position dataclass carries the quote currency so downstream
 mixed-currency market values.
 """
 from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Iterable
+
+from ..registry import routed_company, routed_history, routed_quote
 from . import db
-from ..registry import routed_quote, routed_history, routed_company
 
 
 @dataclass

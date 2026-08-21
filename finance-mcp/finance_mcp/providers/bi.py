@@ -9,14 +9,13 @@ router surfaces honestly, no fake defaults.
 See ADR-0020. Attribution: "Bank Indonesia".
 """
 from __future__ import annotations
+
 import re
-from typing import Any
 
 import httpx
 
-from ..errors import FinanceError, ErrorCode
-from ..models import MacroObservation, MacroSeries, JisdorRate
-
+from ..errors import ErrorCode, FinanceError
+from ..models import JisdorRate, MacroObservation, MacroSeries
 
 _BASE = "https://www.bi.go.id"
 _BI_RATE_URL = _BASE + "/id/statistik/indikator/bi-rate.aspx"
@@ -142,7 +141,7 @@ class BiProvider:
         return r.text
 
     def _parse_series(self, html: str, *, unit: str,
-                      pattern: "re.Pattern[str]",
+                      pattern: re.Pattern[str],
                       min_value: float | None = None) -> list[MacroObservation]:
         obs: list[MacroObservation] = []
         seen: set[str] = set()

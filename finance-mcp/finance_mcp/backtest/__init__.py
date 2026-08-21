@@ -6,4 +6,4 @@ finance-mcp for delivery speed. Boundaries kept clean (own package,
 own tables, no shared state with request-path tools) so the sidecar
 upgrade later is a package-move + Dockerfile add, not a rewrite.
 """
-from . import context, costs, engine, metrics, service, strategies, db  # noqa: F401
+from . import context, costs, db, engine, metrics, service, strategies  # noqa: F401

@@ -1,10 +1,9 @@
 """SubagentRuntime fan-out shim (Phase F bridge)."""
 import asyncio
-import time
-import pytest
 
 from finance_mcp.subagents import (
-    SubagentRuntime, SubagentTask, SubagentResult, FanOutReport,
+    SubagentRuntime,
+    SubagentTask,
 )
 
 

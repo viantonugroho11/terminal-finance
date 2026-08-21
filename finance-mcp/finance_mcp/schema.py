@@ -11,7 +11,6 @@ Versioning discipline:
 """
 from __future__ import annotations
 
-
 SCHEMA_VERSION = "1.2.0"
 
 # Tier ranking used both by the router and by conflict resolution in

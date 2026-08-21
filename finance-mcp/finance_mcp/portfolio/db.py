@@ -1,9 +1,10 @@
 """SQLite connection + schema bootstrap. Path from FINANCE_DB env or default."""
 from __future__ import annotations
+
 import os
 import sqlite3
-from pathlib import Path
 from contextlib import contextmanager
+from pathlib import Path
 
 _SCHEMA = Path(__file__).parent / "schema.sql"
 

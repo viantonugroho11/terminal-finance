@@ -16,14 +16,15 @@ Config file location precedence:
   4. built-in _DEFAULT_PREFERENCE below
 """
 from __future__ import annotations
+
 import logging
 import os
+from collections.abc import Awaitable
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any, Callable
 
-from .errors import FinanceError, ErrorCode
+from .errors import ErrorCode, FinanceError
 from .resolver import MarketContext, resolve
-
 
 log = logging.getLogger(__name__)
 
