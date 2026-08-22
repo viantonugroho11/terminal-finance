@@ -2,7 +2,7 @@
 
 [![version](https://img.shields.io/badge/version-0.3.0-blue.svg)](https://github.com/viantonugroho11/terminal-finance/releases/tag/v0.3.0)
 [![CI](https://github.com/viantonugroho11/terminal-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/viantonugroho11/terminal-finance/actions/workflows/ci.yml)
-[![tools](https://img.shields.io/badge/mcp%20tools-78-informational.svg)]()
+[![tools](https://img.shields.io/badge/mcp%20tools-79-informational.svg)]()
 [![skills](https://img.shields.io/badge/skills-20-informational.svg)]()
 [![providers](https://img.shields.io/badge/providers-9-informational.svg)]()
 [![license](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
@@ -42,7 +42,7 @@ Every reply carries `{data, provenance: {source, retrieved_at, cache_hit}}` — 
 
 | Path | What it is |
 |---|---|
-| `finance-mcp/` | Python MCP server. Exposes 78 tools (quotes, fundamentals, DCF, SEC filings, IDX microstructure, macro, portfolio, watches, news, backtest, crypto/FX). Hermes calls into it over HTTP. |
+| `finance-mcp/` | Python MCP server. Exposes 79 tools (quotes, fundamentals, DCF, SEC filings, IDX microstructure, macro, portfolio, watches, news, backtest, crypto/FX). Hermes calls into it over HTTP. |
 | `finance-skills/` | 20 Hermes skills. Analysis: `stock-analysis`, `fundamental-analysis`, `technical-analysis`, `valuation-analysis`, `risk-analysis`, `catalyst-analysis`, `peer-analysis`, `macro-context`, `market-overview`. Indonesia + flow: `flow-analysis`. Crypto + FX: `crypto-analysis`, `crypto-deep`, `fx-analysis`. Portfolio: `portfolio-analysis`, `portfolio-rebalance`. Daily loop: `watch`, `morning-digest`, `news-brief`. Research: `backtest`, and the `equity-research` coordinator that composes the rest. |
 | `config/` | `hermes.config.yaml` (registers the finance MCP) + `SOUL.md` (persona + safety rules). |
 | `docker/` | Compose stack: `nousresearch/hermes-agent` + `finance-mcp` sidecar on a shared network. |
@@ -258,7 +258,7 @@ Skills react per-code (retry, apologize, degrade) — they **never invent fake v
 - Multi-tenant hosted mode (ADR-0030) — needs a tenant key in the data layer first
 
 **Ahead — in-repo:**
-- Dedicated TUI · Multi-day broker-flow aggregation (needs a dated upstream or a local daily snapshot table)
+- Dedicated TUI
 
 ---
 

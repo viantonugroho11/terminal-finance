@@ -105,6 +105,7 @@ mcp_servers:
         - get_insider_trades
         - get_major_holder_changes
         - get_broker_flow_aggregate
+        - flow_snapshot_once
         - get_ownership_breakdown
         # news + sentiment (ADR-0028)
         - news_ingest_once
@@ -132,6 +133,12 @@ cron_jobs:
   - name: news_score
     schedule: "*/20 * * * *"
     command: "hermes tool call finance.news_score_missing limit=50"
+  # Broker flow has no historical endpoint upstream, so multi-day aggregation
+  # depends on capturing each session locally. 17:00 WIB = 10:00 UTC, an hour
+  # after IDX close, on trading days.
+  - name: flow_snapshot
+    schedule: "0 10 * * 1-5"
+    command: "hermes tool call finance.flow_snapshot_once"
 
 # Skills live at /opt/data/skills — mounted from ../finance-skills in compose.
 # Hermes auto-discovers per its Skills System.

@@ -51,7 +51,6 @@ CAP_IDX_MOVERS        = "idx_market_movers"
 CAP_INSIDER_TRADES         = "insider_trades"
 CAP_MAJOR_HOLDER_CHANGES   = "major_holder_changes"
 CAP_OWNERSHIP_BREAKDOWN    = "ownership_breakdown"
-CAP_BROKER_FLOW_AGGREGATE  = "broker_flow_aggregate"
 
 # Crypto + forex expansion — ADR-0031.
 CAP_CRYPTO_OHLCV_VENUE   = "crypto_ohlcv_venue"
