@@ -3,7 +3,7 @@ name: portfolio-analysis
 description: Analyze the user's portfolio — holdings, P&L, allocation, top movers. Use for "my portfolio", "how am I doing", "what happened to my portfolio today", "biggest position".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

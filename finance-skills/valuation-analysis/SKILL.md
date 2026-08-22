@@ -3,7 +3,7 @@ name: valuation-analysis
 description: Deterministic DCF valuation for equities — projects FCF, applies CAPM/WACC, terminal value, sensitivity. Use when user asks "valuation", "intrinsic value", "fair value", "is X overvalued/undervalued", "DCF".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

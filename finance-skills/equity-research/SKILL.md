@@ -3,7 +3,7 @@ name: equity-research
 description: Full deep-dive equity research report — orchestrates fundamental + technical + valuation + catalyst + peer + macro-context into one ADR-0019 report. Use for "deep research on X", "full report on X", "analisis lengkap X", "research report X".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

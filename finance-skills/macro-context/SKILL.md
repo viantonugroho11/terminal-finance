@@ -3,7 +3,7 @@ name: macro-context
 description: Indonesian macro snapshot (BI-Rate, JISDOR, inflation, GDP, unemployment, banking SPI) framed against an equity or thesis. Use for "macro Indonesia", "bagaimana kondisi ekonomi", "pengaruh BI Rate ke bank", "how does macro affect X".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

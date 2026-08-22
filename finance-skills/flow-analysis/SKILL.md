@@ -3,7 +3,7 @@ name: flow-analysis
 description: IDX smart-money view — foreign flow + broker aggregate + insider trades + ownership breakdown. Use when user asks "aliran dana", "smart money", "asing", "insider", "kepemilikan".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

@@ -3,7 +3,7 @@ name: catalyst-analysis
 description: Recent news, disclosures, corporate actions, SEC filings, IPOs. Use for "what happened with X", "any news", "recent filings", "corp action", "why is X moving".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

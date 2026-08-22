@@ -3,7 +3,7 @@ name: fundamental-analysis
 description: Deep fundamentals — ratios, statements, quality, growth. Use for "fundamentals of X", "analisis fundamental X", "how strong is X's balance sheet", "is X profitable".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

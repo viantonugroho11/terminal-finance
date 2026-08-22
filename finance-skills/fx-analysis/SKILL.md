@@ -3,7 +3,7 @@ name: fx-analysis
 description: Forex — spot cross rates, JISDOR IDR reference, forward points via CIP, central-bank stance context. Use when user says "USDIDR", "kurs", "JISDOR", "forward FX", "cross rate".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

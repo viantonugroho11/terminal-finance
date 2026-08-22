@@ -3,7 +3,7 @@ name: morning-digest
 description: Composed pre-market digest — IHSG, US overnight, FX, BI Rate, IDX movers, foreign flow, watchlist. Use when user asks "morning digest", "pagi", "recap", or when cron fires.
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:
