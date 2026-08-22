@@ -43,6 +43,9 @@ from .retry import with_retry
 from .screener import db as scdb
 from .screener import fields as scfields
 from .screener import service as scsvc
+from .transcripts import db as trdb
+from .transcripts import service as trsvc
+from .transcripts import store as trstore
 from .watch import db as wdb
 from .watch import evaluator as weval
 from .watch import rules as wrules
@@ -56,6 +59,7 @@ ndb.init()
 btdb.init()
 fldb.init()
 scdb.init()
+trdb.init()
 # Must follow every schema bootstrap: migrations skip tables that do not
 # exist yet, and record themselves as done once run.
 migrations.migrate()
@@ -1085,6 +1089,42 @@ async def get_broker_flow_aggregate(symbol: str, days: int = 5) -> dict:
     """
     agg = await flsvc.aggregate(symbol, days=int(days))
     return _deep_asdict(agg)
+
+
+@mcp.tool()
+async def search_transcript(symbol: str | None = None, query: str = "",
+                            top_k: int = 5) -> dict:
+    """Search indexed public-expose decks. Every hit cites page + source URL.
+
+    Lexical (BM25) search over the extracted page text — not a summary. Quote
+    what it returns; do not paraphrase it as management's words without the
+    citation.
+    """
+    hits = trstore.search(symbol, query, top_k=top_k)
+    return {"symbol": (symbol or "").upper() or None, "query": query,
+            "count": len(hits), "hits": hits}
+
+
+@mcp.tool()
+async def transcript_coverage(symbol: str) -> dict:
+    """What is indexed for a symbol, so a skill can say when it has nothing."""
+    return trstore.coverage(symbol)
+
+
+@mcp.tool()
+async def get_earnings_transcript(symbol: str) -> dict:
+    """The most recent indexed deck for a symbol, with its page texts."""
+    latest = trstore.latest(symbol)
+    if latest is None:
+        return {"symbol": symbol.upper(), "found": False,
+                "reason": "no_transcript_indexed"}
+    return {"symbol": symbol.upper(), "found": True, **latest}
+
+
+@mcp.tool()
+async def transcript_ingest_once(symbols: list[str] | None = None) -> dict:
+    """Fetch and index new public-expose filings. For nightly cron."""
+    return await trsvc.ingest_once(symbols)
 
 
 @mcp.tool()
