@@ -110,6 +110,11 @@ mcp_servers:
         - screen_stocks
         - screener_fields
         - screener_snapshot_once
+        # transcripts (ADR-0024)
+        - search_transcript
+        - transcript_coverage
+        - get_earnings_transcript
+        - transcript_ingest_once
         - get_ownership_breakdown
         # news + sentiment (ADR-0028)
         - news_ingest_once
@@ -148,6 +153,11 @@ cron_jobs:
   - name: screener_snapshot
     schedule: "0 15 * * 1-5"
     command: "hermes tool call finance.screener_snapshot_once"
+  # Transcript ingest — 03:00 WIB = 20:00 UTC. Filings appear irregularly, so
+  # a nightly pass is enough; it skips anything already indexed.
+  - name: transcript_ingest
+    schedule: "0 20 * * *"
+    command: "hermes tool call finance.transcript_ingest_once"
 
 # Skills live at /opt/data/skills — mounted from ../finance-skills in compose.
 # Hermes auto-discovers per its Skills System.
