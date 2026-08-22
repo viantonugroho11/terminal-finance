@@ -55,7 +55,7 @@ Six implemented, three spec-only. Each spec lives at `docs/specs/<same-number>-*
 | # | Title | Status |
 |---|---|---|
 | [0023](0023-alert-engine-and-morning-digest.md) | Alert engine + morning digest | Accepted — shipped v0.3.0 |
-| [0024](0024-idx-earnings-transcript-qa.md) | IDX earnings transcript Q&A | **Proposed — not implemented** |
+| [0024](0024-idx-earnings-transcript-qa.md) | IDX earnings transcript Q&A | Accepted **with deviations** — IDX disclosures feed + FTS5, no embeddings |
 | [0025](0025-conversational-screener.md) | Conversational screener | Accepted — implemented (IDX universe, SQLite) |
 | [0026](0026-idx-flow-insider-institutional.md) | IDX flow — insider + institutional | Accepted — shipped v0.3.0 |
 | [0027](0027-portfolio-optimizer-idr-tax.md) | Lot-tracked portfolio + Indonesian tax | Accepted — shipped v0.3.0 |

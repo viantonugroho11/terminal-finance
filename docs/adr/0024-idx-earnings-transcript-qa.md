@@ -1,6 +1,6 @@
 # ADR-0024: IDX earnings-call transcript ingest + Q&A skill
 
-- Status: Proposed (spec written, not implemented — see `docs/specs/0024-earnings-transcript-qa.md`)
+- Status: Accepted with deviations (implemented — `finance_mcp/transcripts/`, skill `finance-skills/transcript-qa/`). Two departures from the spec: filings come from the existing IDX `disclosures` feed rather than a hand-curated per-issuer IR scraper config, and retrieval is SQLite FTS5/BM25 rather than bge-m3 embeddings — which keeps PyTorch out of the image.
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

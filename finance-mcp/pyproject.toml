@@ -14,6 +14,11 @@ dependencies = [
     "starlette>=0.37.0",
     "httpx>=0.27.0",
     "pyyaml>=6.0",
+    # Transcript text extraction (ADR-0024). Pure Python and small —
+    # deliberately not pdfplumber (pulls Pillow) and emphatically not the
+    # sentence-transformers stack the spec named, which would put PyTorch in
+    # the image; FTS5 in the stdlib covers retrieval.
+    "pypdf>=4.0",
 ]
 
 [project.optional-dependencies]
