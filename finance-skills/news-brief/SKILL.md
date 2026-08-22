@@ -3,7 +3,7 @@ name: news-brief
 description: Recent news + sentiment for a symbol or the market. Use when user says "berita", "news", "kabar", "sentimen".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

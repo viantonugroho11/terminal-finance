@@ -40,6 +40,9 @@ from .providers import MACRO_INDICATOR_TO_CAP
 from .registry import router  # process-wide Router singleton
 from .resolver import resolve as resolve_symbol
 from .retry import with_retry
+from .screener import db as scdb
+from .screener import fields as scfields
+from .screener import service as scsvc
 from .watch import db as wdb
 from .watch import evaluator as weval
 from .watch import rules as wrules
@@ -52,6 +55,7 @@ wdb.init()
 ndb.init()
 btdb.init()
 fldb.init()
+scdb.init()
 # Must follow every schema bootstrap: migrations skip tables that do not
 # exist yet, and record themselves as done once run.
 migrations.migrate()
@@ -1081,6 +1085,43 @@ async def get_broker_flow_aggregate(symbol: str, days: int = 5) -> dict:
     """
     agg = await flsvc.aggregate(symbol, days=int(days))
     return _deep_asdict(agg)
+
+
+@mcp.tool()
+async def screen_stocks(filters: list[dict] | None = None,
+                        market: str = "ALL",
+                        order_by: str = "market_cap",
+                        desc: bool = True,
+                        limit: int = 50) -> dict:
+    """Screen the latest daily snapshot.
+
+    `filters` is a list of {field, op, value}. Field names and operators are
+    matched against a fixed allowlist (`screener.fields`); anything else
+    returns SCREENER_FIELD_UNKNOWN with the known names. Values are always
+    bound parameters, never formatted into SQL.
+
+    Use `screener_fields` to see what can be filtered or sorted on.
+    """
+    return scsvc.screen(filters, market=market, order_by=order_by,
+                        desc=desc, limit=limit)
+
+
+@mcp.tool()
+async def screener_fields() -> dict:
+    """Field names the screener accepts, with the label each maps to."""
+    return {
+        "fields": [
+            {"name": name, "label": f.label, "numeric": f.numeric}
+            for name, f in sorted(scfields.FIELDS.items())
+        ],
+        "operators": sorted(scfields.OPS),
+    }
+
+
+@mcp.tool()
+async def screener_snapshot_once(limit: int | None = None) -> dict:
+    """Refresh the screener snapshot. For nightly cron."""
+    return await scsvc.snapshot_once(limit=limit)
 
 
 @mcp.tool()

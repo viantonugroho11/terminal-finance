@@ -3,7 +3,7 @@ name: portfolio-rebalance
 description: Lot-level portfolio with FIFO/HIFO cost basis, Indonesian tax awareness, and rebalance plans. Use when user says "rebalance", "porto", "posisi", "cost basis", "realized PnL".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

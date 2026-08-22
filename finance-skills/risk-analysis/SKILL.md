@@ -3,7 +3,7 @@ name: risk-analysis
 description: Portfolio risk — concentration, volatility, drawdown, sector tilt. Use for "portfolio risk", "am I concentrated", "biggest risk", "which position hurts most".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

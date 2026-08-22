@@ -3,7 +3,7 @@ name: watch
 description: Manage price/flow/sentiment alerts. Use when user says "kabari kalau", "alert me when", "watch", "pantau", "notify".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

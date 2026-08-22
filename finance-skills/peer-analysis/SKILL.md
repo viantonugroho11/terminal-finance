@@ -3,7 +3,7 @@ name: peer-analysis
 description: Sector peers + comps table. Use for "peers of X", "who competes with X", "how does X compare to peers", "bandingkan X dengan sektornya".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

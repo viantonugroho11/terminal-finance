@@ -3,7 +3,7 @@ name: market-overview
 description: Snapshot of global markets — indices, crypto, safe havens. Use for "market", "how are markets", "morning briefing".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

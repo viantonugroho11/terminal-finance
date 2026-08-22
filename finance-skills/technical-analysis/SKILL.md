@@ -3,7 +3,7 @@ name: technical-analysis
 description: Trend, momentum, volatility, drawdown from OHLCV. Use for "technical read on X", "chart", "trend", "is X overbought", "support/resistance context".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

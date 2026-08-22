@@ -1,6 +1,6 @@
 # ADR-0025: Conversational equity screener (IDX + US)
 
-- Status: Proposed (spec written, not implemented — see `docs/specs/0025-conversational-screener.md`)
+- Status: Accepted (implemented — `finance_mcp/screener/`, skill `finance-skills/screener/`). Deviations from the spec: SQLite on the shared finance.db instead of DuckDB (same reasoning as ADR-0028 — no new dependency), and the universe is IDX only for now; the US list the spec named (`data/us_sp500.txt`) does not exist in the repo.
 - Date: 2026-08-14
 - Deciders: Finance Terminal team
 

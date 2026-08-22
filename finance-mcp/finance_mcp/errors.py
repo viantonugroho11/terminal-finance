@@ -19,6 +19,10 @@ class ErrorCode(str, Enum):
     DATA_UNAVAILABLE       = "DATA_UNAVAILABLE"
     TIMEOUT                = "TIMEOUT"
     INTERNAL               = "INTERNAL"
+    # Screener (ADR-0025): the caller asked to filter or sort on a field that
+    # is not in the allowlist. Distinct from DATA_UNAVAILABLE because the
+    # request itself is wrong, not the data.
+    SCREENER_FIELD_UNKNOWN = "SCREENER_FIELD_UNKNOWN"
 
 
 @dataclass

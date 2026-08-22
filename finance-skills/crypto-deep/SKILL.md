@@ -3,7 +3,7 @@ name: crypto-deep
 description: Deep crypto analysis — multi-venue OHLCV, order book, funding rate, open interest, stablecoin peg, IDR pairs on Indodax. Use when user says "BTC funding", "OI", "spread IDR", "peg USDT".
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:

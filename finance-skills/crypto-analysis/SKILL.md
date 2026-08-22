@@ -3,7 +3,7 @@ name: crypto-analysis
 description: Crypto asset analysis — price, technicals, news. Use when user asks about BTC, ETH, SOL, or any "<TICKER>-USD" pair.
 version: 0.1.0
 author: Finance Hermes
-license: MIT
+license: AGPL-3.0-only
 platforms: [macos, linux]
 metadata:
   hermes:
